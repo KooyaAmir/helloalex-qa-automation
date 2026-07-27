@@ -74,4 +74,75 @@ test.describe("app-billing-readonly", () => {
 
     // SAFETY: never click Complete purchase / Pay now / card confirm.
   });
+
+  test("TC-APP-BILLING-03 Billing history or invoices empty/list", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "Billing");
+    const main = mainRegion(page);
+
+    const history = main
+      .getByRole("heading", { name: /invoice|billing history|payment history|transactions/i })
+      .or(main.getByText(/no invoices|no payments|no transactions|billing history|invoices/i))
+      .or(main.locator("table, [role='table'], [role='grid']").filter({ hasText: /invoice|amount|date|payment/i }))
+      .first();
+
+    await expect
+      .poll(async () => history.isVisible().catch(() => false), { timeout: 15_000 })
+      .toBeTruthy();
+  });
+
+  test("TC-APP-BILLING-04 Purchase CTA present and gated", async ({ page }) => {
+    await openSidebarSection(page, "Billing");
+    const manageCredits = page
+      .getByRole("button", { name: "Manage Credits", exact: true })
+      .first();
+    await expect(manageCredits).toBeVisible({ timeout: 15_000 });
+    await manageCredits.click();
+
+    const purchaseCta = page
+      .getByRole("dialog")
+      .getByRole("button", { name: /buy|purchase|top\s*up|add credits|checkout/i })
+      .or(page.getByRole("button", { name: /buy(\s+credits)?|purchase|top\s*up|add credits/i }))
+      .first();
+
+    await expect(purchaseCta).toBeVisible({ timeout: 15_000 });
+
+    // SAFETY: assert gated — do not click through to card/charge.
+    await expect(
+      page.getByRole("button", {
+        name: /complete purchase|pay now|confirm payment|submit payment/i,
+      }),
+    ).toHaveCount(0);
+  });
+
+  test("TC-APP-BILLING-05 Account Settings billing link consistency", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "Account Settings");
+    const main = mainRegion(page);
+
+    const billingEntry = main
+      .getByRole("link", { name: /billing|credits|plan|subscription/i })
+      .or(main.getByRole("button", { name: /billing|credits|plan|subscription/i }))
+      .or(main.getByText(/billing|manage credits|subscription/i))
+      .first();
+
+    // If Account Settings exposes billing entry, follow it; else open Billing nav and compare chrome.
+    if (await billingEntry.isVisible().catch(() => false)) {
+      await billingEntry.click();
+    } else {
+      await openSidebarSection(page, "Billing");
+    }
+
+    await expect(
+      page.getByRole("button", { name: "Manage Credits", exact: true }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(
+      mainRegion(page)
+        .getByText(/\$\s*[\d,]+(?:\.\d{2})?|credits?\s+balance|available\s+credits|balance/i)
+        .or(page.getByTestId("client-sidebar-credit-balance"))
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
+  });
 });
