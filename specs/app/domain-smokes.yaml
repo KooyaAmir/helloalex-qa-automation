@@ -75,6 +75,7 @@ cases:
     asserts:
       - Validation on empty/invalid recipient; abort before network send
     risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
   - id: TC-APP-SMS-05
     title: SMS nav trio reachable
     priority: P1
@@ -112,12 +113,14 @@ cases:
     asserts:
       - New/create visible; abandon before persist
     risk: medium
+    implemented: suites/app/studio-smoke.spec.ts
   - id: TC-APP-STUDIO-05
     title: Character create entry visible (no save)
     priority: P2
     asserts:
       - New/create visible; abandon before persist
     risk: medium
+    implemented: suites/app/studio-smoke.spec.ts
 
   # Billing
   - id: TC-APP-BILLING-01
@@ -143,18 +146,21 @@ cases:
     asserts:
       - Billing-specific history landmark
     risk: medium
+    implemented: suites/app/billing-readonly.spec.ts
   - id: TC-APP-BILLING-04
     title: Purchase CTA present and gated
     priority: P2
     asserts:
       - Buy/upgrade visible; abort before charge
     risk: high
+    implemented: suites/app/billing-readonly.spec.ts
   - id: TC-APP-BILLING-05
     title: Account Settings billing link consistency
     priority: P2
     asserts:
       - From Account Settings, billing/credits reaches same chrome as Billing nav
     risk: low
+    implemented: suites/app/billing-readonly.spec.ts
 
   # Untreated domains
   - id: TC-APP-TASKS-01
