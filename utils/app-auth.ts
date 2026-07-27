@@ -41,4 +41,9 @@ export async function loginAsAppUser(page: Page): Promise<void> {
   await page.waitForURL((url) => !url.pathname.includes("/login"), {
     timeout: 30_000,
   });
+  // Shell often shows "Loading…" after auth before complementary nav mounts.
+  await page
+    .getByRole("complementary")
+    .getByRole("button", { name: "Dashboard", exact: true })
+    .waitFor({ state: "visible", timeout: 60_000 });
 }
