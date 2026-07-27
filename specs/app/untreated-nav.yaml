@@ -13,44 +13,66 @@ cases:
       - Tasks-specific landmark (heading or empty state)
       - No create/save that persists if risky — open only preferred
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-TASKS-02
+    title: New Task entry opens without save
+    asserts:
+      - New Task form (Name/Prompt) visible
+      - Abandon via Cancel/Close; never Save
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-KB-01
     title: Knowledge Base opens
     asserts:
       - KB list/empty landmark
       - No destructive delete
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-KB-02
+    title: Create Knowledge Base entry without persist
+    asserts:
+      - Create Knowledge Base dialog opens
+      - Cancel/Close; never Create persist
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-CRM-01
     title: CRM section opens
     asserts:
       - CRM landmark
       - Do not click Connect / Sync that mutates live CRM
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-SIP-01
     title: SIP Trunks section opens
     asserts:
       - SIP UI/empty landmark
       - Do not provision / create trunk
     risk: high
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-AI-01
     title: AI Intelligence section opens
     asserts:
       - Section landmark; read-only
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-MEMORY-01
     title: Memory section opens
     asserts:
       - Memory UI/empty state
       - No wipe
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-INTEG-01
     title: Integrations section opens
     asserts:
       - Integrations landmark
       - Do not complete OAuth / connect that mutates secrets
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-SUPPORT-01
     title: Support page loads
     asserts:
       - Support content landmark
       - Submit out of scope
     risk: low
+    implemented: suites/app/untreated-nav.spec.ts
