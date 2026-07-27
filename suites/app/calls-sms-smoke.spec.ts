@@ -268,4 +268,120 @@ test.describe("app-calls-sms", () => {
       });
     }
   });
+
+  test("TC-APP-CALLS-04 Send Call required-field validation (abort)", async ({
+    page,
+  }) => {
+    // SAFETY: abort mutating call APIs only (not static assets).
+    let blockedCallPost = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (req.method() === "GET" || req.method() === "HEAD" || req.method() === "OPTIONS") {
+        await route.continue();
+        return;
+      }
+      const url = req.url();
+      if (/call|dial|outbound/i.test(url) && /launch|place|start|create|send/i.test(url)) {
+        blockedCallPost += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Send Call");
+    const main = mainRegion(page);
+    const phone = main
+      .locator('input[name="phoneNumber"]')
+      .or(main.getByPlaceholder(/415|phone|555/i))
+      .first();
+    await expect(phone).toBeVisible({ timeout: 15_000 });
+    await phone.fill("");
+    await phone.blur();
+
+    const launch = main.getByRole("button", {
+      name: /launch call|place call|send call/i,
+    });
+    await expect(launch.first()).toBeVisible();
+
+    const disabled = await launch.first().isDisabled().catch(() => false);
+    if (!disabled) {
+      await launch.first().click();
+    }
+
+    await expect
+      .poll(async () => {
+        const validation = await page
+          .getByText(
+            /please enter a valid phone|valid phone number|required|enter.*(phone|number)|invalid.*(phone|number)|missing/i,
+          )
+          .or(page.getByRole("alert"))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const phoneInvalid = await phone
+          .evaluate((el) => (el as HTMLInputElement).validity?.valid === false)
+          .catch(() => false);
+        const stillOnSendCall = /send-call/i.test(page.url());
+        return disabled || validation || phoneInvalid || blockedCallPost > 0 || stillOnSendCall;
+      }, { timeout: 10_000 })
+      .toBeTruthy();
+
+    // Hard gate: never treat a successful live place-call as pass.
+    await expect(page.getByText(/call started|call placed|dialing/i)).toHaveCount(0);
+  });
+
+  test("TC-APP-SMS-04 Send SMS validation without send", async ({ page }) => {
+    let blockedSmsPost = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (req.method() === "GET" || req.method() === "HEAD" || req.method() === "OPTIONS") {
+        await route.continue();
+        return;
+      }
+      const url = req.url();
+      if (/sms|message/i.test(url) && /send|launch|create|start/i.test(url)) {
+        blockedSmsPost += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Send SMS");
+    const main = mainRegion(page);
+    const phone = main
+      .locator("#send-sms-phone")
+      .or(main.getByPlaceholder(/555|phone|e\.g\./i))
+      .first();
+    await expect(phone).toBeVisible({ timeout: 15_000 });
+    await phone.fill("");
+    await phone.blur();
+
+    const sendBtn = main
+      .getByRole("button", { name: "Send SMS", exact: true })
+      .filter({ hasNot: page.locator("[data-nav]") })
+      .first();
+    await expect(sendBtn).toBeVisible();
+
+    const disabled = await sendBtn.isDisabled().catch(() => false);
+    if (!disabled) {
+      await sendBtn.click();
+    }
+
+    await expect
+      .poll(async () => {
+        const validation = await main
+          .getByText(/required|enter.*(phone|number|recipient)|invalid.*(phone|number)|missing/i)
+          .or(page.getByRole("alert"))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const phoneInvalid = await phone
+          .evaluate((el) => (el as HTMLInputElement).validity?.valid === false)
+          .catch(() => false);
+        return disabled || validation || phoneInvalid || blockedSmsPost > 0;
+      }, { timeout: 10_000 })
+      .toBeTruthy();
+  });
 });

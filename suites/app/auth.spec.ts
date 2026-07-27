@@ -46,4 +46,94 @@ test.describe("app-auth", () => {
     await page.waitForURL(/\/login/i, { timeout: 20_000 });
     await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
   });
+
+  test("TC-APP-AUTH-04 empty credentials blocked on login", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    const email = page.getByRole("textbox", { name: /email/i });
+    const password = page.getByRole("textbox", { name: /password/i });
+    await email.fill("");
+    await password.fill("");
+
+    const submit = page.getByRole("button", { name: /let me in/i });
+    const disabled = await submit.isDisabled().catch(() => false);
+    if (!disabled) {
+      await submit.click();
+    }
+
+    await expect(page).toHaveURL(/\/login/i);
+    await expect(
+      page.getByRole("complementary").getByRole("button", { name: "Dashboard", exact: true }),
+    ).toHaveCount(0);
+
+    // Prefer disabled submit or HTML5/inline validation
+    const invalidEmail = await email.evaluate(
+      (el) => (el as HTMLInputElement).validity?.valid === false,
+    ).catch(() => false);
+    expect(disabled || invalidEmail || page.url().includes("/login")).toBeTruthy();
+  });
+
+  test("TC-APP-AUTH-05 session required for /", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    await expect
+      .poll(async () => {
+        if (page.url().includes("/login")) return true;
+        if (
+          await page
+            .getByRole("heading", { name: /welcome back/i })
+            .isVisible()
+            .catch(() => false)
+        ) {
+          return true;
+        }
+        if (
+          await page
+            .getByText(/unable to verify your session|sign in|log in to continue/i)
+            .first()
+            .isVisible()
+            .catch(() => false)
+        ) {
+          return true;
+        }
+        return false;
+      }, { timeout: 45_000 })
+      .toBeTruthy();
+
+    // Must not land on authenticated shell with cleared storage.
+    await expect(
+      page.getByRole("complementary").getByRole("button", { name: "Dashboard", exact: true }),
+    ).toHaveCount(0);
+  });
+
+  test("TC-APP-AUTH-06 invalid email format stays on login", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    const email = page.getByRole("textbox", { name: /email/i });
+    const password = page.getByRole("textbox", { name: /password/i });
+    await email.fill("not-an-email");
+    await password.fill("somepassword123");
+
+    const submit = page.getByRole("button", { name: /let me in/i });
+    const disabled = await submit.isDisabled().catch(() => false);
+    if (!disabled) {
+      await submit.click();
+    }
+
+    await expect(page).toHaveURL(/\/login/i, { timeout: 12_000 });
+
+    const htmlInvalid = await email.evaluate(
+      (el) => (el as HTMLInputElement).validity?.typeMismatch === true
+        || (el as HTMLInputElement).validity?.valid === false,
+    ).catch(() => false);
+    const alertOrToast = await page
+      .getByRole("alert")
+      .or(page.getByText(/invalid email|enter a valid email|email.*invalid/i))
+      .first()
+      .isVisible()
+      .catch(() => false);
+
+    expect(
+      disabled || htmlInvalid || alertOrToast || page.url().includes("/login"),
+      "Expected validation, disabled submit, or stay on /login",
+    ).toBeTruthy();
+  });
 });
