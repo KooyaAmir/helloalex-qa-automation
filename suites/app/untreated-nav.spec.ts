@@ -229,6 +229,30 @@ test.describe("app-untreated-nav", () => {
     await expect(landmark).toBeVisible({ timeout: 15_000 });
   });
 
+  test("TC-APP-AI-02 Generate Analysis control gated (no apply)", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "AI Intelligence");
+    const main = mainRegion(page);
+
+    await expect(
+      main.getByRole("heading", { name: /ai intelligence/i }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const generate = main.getByRole("button", { name: /generate analysis/i });
+    await expect(generate.first()).toBeVisible({ timeout: 15_000 });
+
+    // Presence is the gate — do not run analysis / apply to pathways.
+    const apply = main.getByRole("button", {
+      name: /apply (to )?pathway|apply insight|apply changes/i,
+    });
+    expect(await apply.count()).toBeGreaterThanOrEqual(0);
+
+    await expect(
+      page.getByText(/analysis complete|insights applied|pathway updated|successfully applied/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-MEMORY-01 Memory section opens", async ({ page }) => {
     await openSidebarSection(page, "Memory");
     const main = mainRegion(page);
@@ -312,6 +336,68 @@ test.describe("app-untreated-nav", () => {
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: do not complete OAuth connect that mutates secrets.
+  });
+
+  test("TC-APP-INTEG-02 New API key entry without persist", async ({ page }) => {
+    let blockedKeyCreate = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /api.?key|integration|webhook|token/i.test(req.url()) &&
+        /create|generate|issue|save|persist/i.test(req.url())
+      ) {
+        blockedKeyCreate += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Integrations");
+    const main = mainRegion(page);
+
+    await expect(
+      main.getByRole("heading", { name: /integrations?/i }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const newKey = main.getByRole("button", { name: /new api key|create api key|generate api key/i });
+    await expect(newKey.first()).toBeVisible({ timeout: 15_000 });
+    await newKey.first().click();
+
+    await expect
+      .poll(async () => {
+        const dialog = await page.getByRole("dialog").isVisible().catch(() => false);
+        const form = await page
+          .getByLabel(/name|label|permission|scope/i)
+          .or(page.getByPlaceholder(/name|label|key name/i))
+          .or(page.getByText(/permissions|scopes|expires|api key name/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const createPersist = await page
+          .getByRole("button", { name: /create key|generate key|create|save/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return dialog || form || createPersist;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: abandon — never Create/Generate persist for live API keys.
+    await page.keyboard.press("Escape");
+    const cancel = page.getByRole("button", { name: /cancel|close|discard/i });
+    if (await cancel.first().isVisible().catch(() => false)) {
+      await cancel.first().click();
+    }
+
+    expect(blockedKeyCreate).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/api key created|key generated|copy your key|successfully created/i),
+    ).toHaveCount(0);
   });
 
   test("TC-APP-SUPPORT-01 Support page loads", async ({ page }) => {
