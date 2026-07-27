@@ -42,11 +42,25 @@ cases:
       - Do not click Connect / Sync that mutates live CRM
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-CRM-02
+    title: Sync controls visible without live sync
+    asserts:
+      - Sync Now / Connect / Configure may be visible
+      - Never click live sync or connect
+    risk: high
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-SIP-01
     title: SIP Trunks section opens
     asserts:
       - SIP UI/empty landmark
       - Do not provision / create trunk
+    risk: high
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SIP-02
+    title: SIP provision controls gated (no provision)
+    asserts:
+      - SIP chrome / optional provision CTA visible
+      - Never complete trunk provision
     risk: high
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-AI-01

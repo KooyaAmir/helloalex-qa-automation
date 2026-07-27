@@ -47,6 +47,14 @@ cases:
     risk: high
     implemented: suites/app/calls-sms-smoke.spec.ts
     note: CTA label is Request Number — not completed
+  - id: TC-APP-CALLS-06
+    title: Batch Call launch aborted without audience
+    priority: P2
+    asserts:
+      - Launch/start batch may be clicked empty; validation or stay on page
+      - No live batch launch
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
   - id: TC-APP-PHONE-02
     title: Request Number validation without provision
     priority: P2
@@ -92,6 +100,14 @@ cases:
     asserts:
       - Send SMS, Batch SMS, SMS History each prove destination
     risk: medium
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-SMS-06
+    title: Batch SMS send aborted without recipients
+    priority: P2
+    asserts:
+      - Send Batch SMS clicked empty; validation or stay on page
+      - No live batch SMS send
+    risk: high
     implemented: suites/app/calls-sms-smoke.spec.ts
 
   # Studio
@@ -241,6 +257,14 @@ cases:
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
     note: Do not Connect/Sync live CRM
+  - id: TC-APP-CRM-02
+    title: Sync controls visible without live sync
+    priority: P2
+    asserts:
+      - Sync Now / Connect / Configure may be visible
+      - Never click live sync or connect
+    risk: high
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-INTEG-01
     title: Integrations section opens
     priority: P2
@@ -251,6 +275,14 @@ cases:
     title: SIP Trunks section opens
     priority: P2
     asserts: [SIP UI/empty state; no provision]
+    risk: high
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SIP-02
+    title: SIP provision controls gated (no provision)
+    priority: P2
+    asserts:
+      - SIP chrome / optional provision CTA visible
+      - Never complete trunk provision
     risk: high
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-AI-01
