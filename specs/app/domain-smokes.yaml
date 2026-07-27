@@ -317,6 +317,62 @@ cases:
     risk: high
     implemented: suites/app/campaigns-contacts-smoke.spec.ts
     note: Entry CTA is Launch Campaign — final launch not completed
+  - id: TC-APP-CAMP-03
+    title: Campaigns metrics chrome visible
+    priority: P2
+    asserts: [Active/Contacts/Completed/Success/Balance/Queue/Failed/SMS Sent chrome]
+    risk: low
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-04
+    title: Finished/Failed/All filter chrome visible
+    priority: P2
+    asserts: [Date/All Types/Newest First filter chrome on list tabs]
+    risk: low
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-05
+    title: Lead Queue management chrome
+    priority: P2
+    asserts: [Lead Queue Management / queue empty chrome; no launch]
+    risk: medium
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-06
+    title: Analytics performance chrome
+    priority: P2
+    asserts: [Campaign Analytics metrics / empty insight chrome]
+    risk: low
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-07
+    title: Wizard step 1 Call vs SMS type selection
+    priority: P2
+    asserts: [Call Campaign and SMS Message selectable; cancel without launch]
+    risk: high
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-08
+    title: Wizard step 2 Campaign Details without launch
+    priority: P2
+    asserts: [Name/Pathway/Voice details visible; abandon before launch]
+    risk: high
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-09
+    title: Wizard SMS type reaches details and aborts
+    priority: P2
+    asserts: [SMS Message path advances; cancel without launch]
+    risk: high
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-10
+    title: Active empty-state Launch CTA opens wizard
+    priority: P2
+    asserts: [Launch Your First Campaign opens Step 1; cancel]
+    risk: high
+    implemented: suites/app/campaigns-flows.spec.ts
+  - id: TC-APP-CAMP-TAB
+    title: Campaigns tab destinations (Active/Finished/Failed/All/Archived/Lead Queue/Analytics)
+    priority: P1
+    asserts:
+      - Each tab updates URL query and shows empty/landmark copy
+      - No campaign launch
+    risk: medium
+    implemented: suites/app/campaigns-flows.spec.ts
   - id: TC-APP-CONTACTS-01
     title: Contacts list or empty state
     priority: P1
