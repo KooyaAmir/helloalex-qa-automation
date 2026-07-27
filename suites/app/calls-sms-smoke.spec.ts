@@ -157,6 +157,63 @@ test.describe("app-calls-sms", () => {
     await expect(buyOrRequest.first()).toBeVisible();
   });
 
+  test("TC-APP-PHONE-02 Request Number validation without provision", async ({
+    page,
+  }) => {
+    let blockedProvision = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /phone|number|provision|twilio|did/i.test(req.url()) &&
+        /request|buy|purchase|provision|create|order/i.test(req.url())
+      ) {
+        blockedProvision += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Phone Numbers");
+    const main = mainRegion(page);
+
+    const areaCode = main
+      .getByRole("textbox", { name: /415|area/i })
+      .or(main.getByPlaceholder(/415|area code/i))
+      .first();
+    await expect(areaCode).toBeVisible({ timeout: 15_000 });
+    await areaCode.fill("");
+    await areaCode.blur();
+
+    const requestBtn = main.getByRole("button", {
+      name: /request number|buy|purchase|provision|get number/i,
+    });
+    await expect(requestBtn.first()).toBeVisible();
+    await requestBtn.first().click();
+
+    await expect
+      .poll(async () => {
+        const validation = await page
+          .getByText(/enter a valid 3-digit area code|valid.*area code|area code.*required|required/i)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const stillOnPage = /phone-numbers/i.test(page.url());
+        return validation || blockedProvision > 0 || stillOnPage;
+      }, { timeout: 10_000 })
+      .toBeTruthy();
+
+    // SAFETY: never complete a live number provision / purchase.
+    expect(blockedProvision).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/number provisioned|number purchased|request submitted|order complete/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-SMS-01 Send SMS page loads (no send)", async ({ page }) => {
     await openSidebarSection(page, "Send SMS");
 

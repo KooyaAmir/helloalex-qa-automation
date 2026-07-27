@@ -38,6 +38,7 @@ cases:
     asserts:
       - Validation visible; no outbound call (intercept OK)
     risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
   - id: TC-APP-CALLS-05
     title: Phone Numbers section read-only smoke
     priority: P1
@@ -46,6 +47,15 @@ cases:
     risk: high
     implemented: suites/app/calls-sms-smoke.spec.ts
     note: CTA label is Request Number — not completed
+  - id: TC-APP-PHONE-02
+    title: Request Number validation without provision
+    priority: P2
+    asserts:
+      - Request Number with empty/invalid area code shows validation
+      - Abort before live provision/purchase
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+    note: Empty area code → "Enter a valid 3-digit area code."
 
   # SMS
   - id: TC-APP-SMS-01
@@ -121,6 +131,15 @@ cases:
       - New/create visible; abandon before persist
     risk: medium
     implemented: suites/app/studio-smoke.spec.ts
+  - id: TC-APP-STUDIO-06
+    title: Clone Voice entry opens without clone
+    priority: P2
+    asserts:
+      - Clone New Voice entry opens
+      - Abandon before clone/train/upload (denylist)
+    risk: high
+    implemented: suites/app/studio-smoke.spec.ts
+    note: CTA is Clone New Voice — never complete clone
 
   # Billing
   - id: TC-APP-BILLING-01
@@ -162,11 +181,29 @@ cases:
     risk: low
     implemented: suites/app/billing-readonly.spec.ts
 
+  - id: TC-APP-ACCOUNT-01
+    title: Account Settings profile chrome read-only
+    priority: P1
+    asserts:
+      - Account Command Center / My Profile landmark
+      - Profile fields + Save Changes visible; do not persist
+    risk: medium
+    implemented: suites/app/account-readonly.spec.ts
+    note: /settings — Save Changes not clicked
+
   # Untreated domains
   - id: TC-APP-TASKS-01
     title: Tasks section opens
     priority: P2
     asserts: [Tasks list or empty state]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-TASKS-02
+    title: New Task entry opens without save
+    priority: P2
+    asserts:
+      - New Task form (Name/Prompt) visible
+      - Abandon via Cancel/Close; never Save
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-KB-01
@@ -175,10 +212,26 @@ cases:
     asserts: [KB list/empty state; no destructive delete]
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-KB-02
+    title: Create Knowledge Base entry without persist
+    priority: P2
+    asserts:
+      - Create Knowledge Base dialog opens
+      - Cancel/Close; never Create persist
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-MEMORY-01
     title: Memory section opens
     priority: P2
     asserts: [Memory UI/empty state; no wipe]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-MEMORY-02
+    title: Create Memory Store entry without persist
+    priority: P2
+    asserts:
+      - Create Memory Store entry opens
+      - Abandon without persist / wipe
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-CRM-01
@@ -239,5 +292,13 @@ cases:
     title: Support page loads
     priority: P2
     asserts: [Support content or contact form; submit out of scope]
+    risk: low
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SUPPORT-02
+    title: Support Tickets chrome without submit
+    priority: P2
+    asserts:
+      - Support Tickets tab/chrome visible
+      - Do not submit a ticket
     risk: low
     implemented: suites/app/untreated-nav.spec.ts

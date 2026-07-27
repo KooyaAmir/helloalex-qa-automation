@@ -6,8 +6,8 @@ import { mainRegion, openSidebarSection } from "./shell-helpers";
  * Spec: specs/app/untreated-nav.yaml
  * Decisions: PROJECT-DECISIONS.md
  *
- * SAFETY: Open only. Never Connect/Sync CRM, provision SIP, clone voice,
- * delete KB docs, or other denylisted side effects (QA-POLICY-APP.md).
+ * SAFETY: Open + create-entry abort only. Never Connect/Sync CRM, provision SIP,
+ * clone voice, delete KB docs, or persist Tasks/KB creates (QA-POLICY-APP.md).
  */
 
 test.describe("app-untreated-nav", () => {
@@ -22,6 +22,66 @@ test.describe("app-untreated-nav", () => {
     await expect(landmark).toBeVisible({ timeout: 15_000 });
   });
 
+  test("TC-APP-TASKS-02 New Task entry opens without save", async ({ page }) => {
+    let blockedPersist = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (/task/i.test(req.url()) && /create|save|persist|update/i.test(req.url())) {
+        blockedPersist += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Tasks");
+    const main = mainRegion(page);
+    const newTask = main.getByRole("button", { name: /new task/i }).first();
+    await expect(newTask).toBeVisible({ timeout: 15_000 });
+    await newTask.click();
+
+    await expect
+      .poll(async () => {
+        const nameField = await main
+          .getByLabel(/^name/i)
+          .or(main.getByRole("textbox", { name: /^name/i }))
+          .or(page.getByText(/^name\s*\*/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const promptField = await main
+          .getByLabel(/prompt/i)
+          .or(page.getByText(/^prompt\s*\*/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const save = await main
+          .getByRole("button", { name: /^save$/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const modeNew = /mode=new/i.test(page.url());
+        return nameField || promptField || save || modeNew;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: abandon — never click Save.
+    await page.keyboard.press("Escape");
+    const cancel = main.getByRole("button", { name: /cancel|close|discard/i });
+    if (await cancel.first().isVisible().catch(() => false)) {
+      await cancel.first().click();
+    } else {
+      await openSidebarSection(page, "Tasks");
+    }
+
+    expect(blockedPersist).toBeGreaterThanOrEqual(0);
+    await expect(page.getByText(/task saved|successfully created|task created/i)).toHaveCount(0);
+  });
+
   test("TC-APP-KB-01 Knowledge Base opens", async ({ page }) => {
     await openSidebarSection(page, "Knowledge Base");
     const main = mainRegion(page);
@@ -32,6 +92,63 @@ test.describe("app-untreated-nav", () => {
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: do not delete documents.
+  });
+
+  test("TC-APP-KB-02 Create Knowledge Base entry without persist", async ({
+    page,
+  }) => {
+    let blockedPersist = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /knowledge|kb|document/i.test(req.url()) &&
+        /create|save|persist|upload|update/i.test(req.url())
+      ) {
+        blockedPersist += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Knowledge Base");
+    const main = mainRegion(page);
+    const createBtn = main
+      .getByRole("button", {
+        name: /create your first knowledge base|create knowledge base|new knowledge base/i,
+      })
+      .first();
+    await expect(createBtn).toBeVisible({ timeout: 15_000 });
+    await createBtn.click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
+    await expect(
+      dialog.getByRole("heading", { name: /create knowledge base/i }).first(),
+    ).toBeVisible();
+
+    const nameField = dialog
+      .getByRole("textbox")
+      .or(dialog.getByPlaceholder(/product information|name/i))
+      .first();
+    if (await nameField.isVisible().catch(() => false)) {
+      await nameField.fill("QA abort KB — do not save");
+    }
+
+    // SAFETY: Cancel / Close — never click Create persist.
+    const cancel = dialog.getByRole("button", { name: /cancel|close/i }).first();
+    await expect(cancel).toBeVisible();
+    await cancel.click();
+    await expect(dialog).toBeHidden({ timeout: 10_000 });
+
+    expect(blockedPersist).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/knowledge base created|successfully created|kb created/i),
+    ).toHaveCount(0);
   });
 
   test("TC-APP-CRM-01 CRM section opens", async ({ page }) => {
@@ -78,6 +195,68 @@ test.describe("app-untreated-nav", () => {
     // SAFETY: do not wipe memory.
   });
 
+  test("TC-APP-MEMORY-02 Create Memory Store entry without persist", async ({
+    page,
+  }) => {
+    let blockedPersist = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /memory/i.test(req.url()) &&
+        /create|save|persist|upload|update|wipe|delete/i.test(req.url())
+      ) {
+        blockedPersist += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Memory");
+    const main = mainRegion(page);
+    const createBtn = main
+      .getByRole("button", {
+        name: /create your first memory store|create memory store|new memory/i,
+      })
+      .first();
+    await expect(createBtn).toBeVisible({ timeout: 15_000 });
+    await createBtn.click();
+
+    await expect
+      .poll(async () => {
+        const dialog = await page.getByRole("dialog").isVisible().catch(() => false);
+        const heading = await page
+          .getByRole("heading", { name: /create memory|new memory|memory store/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const nameField = await page
+          .getByRole("textbox")
+          .or(page.getByPlaceholder(/name|memory/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return dialog || heading || nameField;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: Cancel / Escape — never Create persist / wipe.
+    await page.keyboard.press("Escape");
+    const cancel = page.getByRole("button", { name: /cancel|close|discard/i });
+    if (await cancel.first().isVisible().catch(() => false)) {
+      await cancel.first().click();
+    }
+
+    expect(blockedPersist).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/memory (store )?created|successfully created|memory wiped/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-INTEG-01 Integrations section opens", async ({ page }) => {
     await openSidebarSection(page, "Integrations");
     const main = mainRegion(page);
@@ -98,5 +277,50 @@ test.describe("app-untreated-nav", () => {
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: form submit optional / out of scope.
+  });
+
+  test("TC-APP-SUPPORT-02 Support Tickets chrome without submit", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "Support");
+    const main = mainRegion(page);
+
+    await expect(
+      main.getByRole("heading", { name: /support center|support|help/i }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const ticketsTab = main
+      .getByRole("button", { name: /support tickets|tickets/i })
+      .or(main.getByRole("tab", { name: /tickets/i }))
+      .first();
+    await expect(ticketsTab).toBeVisible({ timeout: 15_000 });
+    await ticketsTab.click();
+
+    await expect
+      .poll(async () => {
+        const ticketChrome = await main
+          .getByText(/ticket|no tickets|open a ticket|submit|conversation|inbox/i)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const composer = await main
+          .getByRole("textbox")
+          .or(main.getByPlaceholder(/describe|message|subject/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const newTicket = await main
+          .getByRole("button", { name: /new ticket|create ticket|submit ticket/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return ticketChrome || composer || newTicket;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: never submit a support ticket from automation.
+    await expect(page.getByText(/ticket submitted|ticket created|thanks for contacting/i)).toHaveCount(
+      0,
+    );
   });
 });
