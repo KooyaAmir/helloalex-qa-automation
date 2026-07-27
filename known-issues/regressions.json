@@ -1,0 +1,77 @@
+{
+  "site": "https://helloalex.ai",
+  "source": "manual-qa-pass-4",
+  "policy": "Automations detect and document only. Status stays pending-human-approval until explicit approval. Approved IDs are listed in reports/latest/approvals.json and APPROVED-FIXES.md.",
+  "items": [
+    {
+      "id": "TC-H1",
+      "severity": "HIGH",
+      "status": "approved",
+      "title": "Industries CTA flashes See all 0 + industries",
+      "fixPlan": "Do not render the industries count in the CTA until /api/industries resolves; or use a static '200+' label. Avoid animating from 0 into the accessible name."
+    },
+    {
+      "id": "TC-H2",
+      "severity": "HIGH",
+      "status": "approved",
+      "title": "Conflicting call-volume metrics across pages",
+      "fixPlan": "Single source of truth for public 'calls handled' (e.g. CMS constant). Sync homepage, pricing, and investors copy to one number."
+    },
+    {
+      "id": "TC-H3",
+      "severity": "HIGH",
+      "status": "approved",
+      "title": "Conflicting language / voice counts",
+      "fixPlan": "Align language and voice figures; if ElevenLabs library differs from Hello Alex runtime, label each claim with its scope."
+    },
+    {
+      "id": "TC-H4",
+      "severity": "HIGH",
+      "status": "pending-human-approval",
+      "title": "Footer Features / How It Works use bare hashes on inner pages",
+      "fixPlan": "Change footer hrefs to '/#features' and '/#how-it-works' (match affiliate landing). Share one footer component."
+    },
+    {
+      "id": "TC-H5",
+      "severity": "HIGH",
+      "status": "approved",
+      "title": "Mobile header drops Features / Industries / Affiliates with no hamburger",
+      "fixPlan": "Add a mobile menu control that exposes Features, Industries, Affiliates (and remaining primary links) below the desktop breakpoint."
+    },
+    {
+      "id": "TC-H6",
+      "severity": "HIGH",
+      "status": "pending-human-approval",
+      "title": "Platform fee hidden on cards; FAQ says no hidden costs",
+      "fixPlan": "Show monthly/annual platform fee on each plan card. Rewrite FAQ so 'price you see' matches cards; keep per-minute usage as a separate line."
+    },
+    {
+      "id": "TC-M1",
+      "severity": "MEDIUM",
+      "status": "pending-human-approval",
+      "title": "Annual toggle does not change displayed card rates",
+      "fixPlan": "When Annual is selected, update card totals to show discounted platform fee (and any rate changes). Or remove the toggle until cards reflect it."
+    },
+    {
+      "id": "TC-M2",
+      "severity": "MEDIUM",
+      "status": "pending-human-approval",
+      "title": "Affiliate Forgot password is a no-op",
+      "fixPlan": "Wire Forgot password to a real reset page or modal; remove href='#'."
+    },
+    {
+      "id": "TC-M4",
+      "severity": "MEDIUM",
+      "status": "pending-human-approval",
+      "title": "Duplicate Dental Practice industry",
+      "fixPlan": "Deduplicate industry catalog entries before render / API response."
+    },
+    {
+      "id": "TC-M5",
+      "severity": "MEDIUM",
+      "status": "pending-human-approval",
+      "title": "Primary nav inconsistent home vs inner pages",
+      "fixPlan": "Use one shared header component (or document intentional secondary nav)."
+    }
+  ]
+}

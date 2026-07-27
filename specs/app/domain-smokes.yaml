@@ -1,0 +1,220 @@
+# Domain smoke contracts — Spec backlog (Phase 2+)
+# From Adversarial COVERAGE-GAPS.md. Do not implement suites until Orchestrator schedules Builders.
+
+suite: app-domain-smokes
+host: https://dev-app.helloalex.ai
+auth: required
+status: active-partial
+# Cases with `implemented:` are live; remaining IDs stay backlog until scheduled.
+
+cases:
+  # Calls
+  - id: TC-APP-CALLS-01
+    title: Send Call page loads (no place-call)
+    priority: P1
+    asserts:
+      - Send Call heading/form landmark
+      - Place/Send control may exist — do not click final place/send
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+    note: Launch Call visible — not clicked
+  - id: TC-APP-CALLS-02
+    title: Call History list or empty state
+    priority: P1
+    asserts:
+      - Table/list or Call History empty-state; URL/nav selected
+    risk: medium
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-CALLS-03
+    title: Batch Call section opens (read-only)
+    priority: P1
+    asserts:
+      - Batch Call UI or empty state; no start batch / confirm send
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-CALLS-04
+    title: Send Call required-field validation (abort)
+    priority: P2
+    asserts:
+      - Validation visible; no outbound call (intercept OK)
+    risk: high
+  - id: TC-APP-CALLS-05
+    title: Phone Numbers section read-only smoke
+    priority: P1
+    asserts:
+      - Numbers list or empty state; Buy visible but not completed
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+    note: CTA label is Request Number — not completed
+
+  # SMS
+  - id: TC-APP-SMS-01
+    title: Send SMS page loads (no send)
+    priority: P1
+    asserts:
+      - Composer landmark; Send present; do not submit
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-SMS-02
+    title: SMS History list or empty state
+    priority: P1
+    asserts:
+      - History landmark
+    risk: medium
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-SMS-03
+    title: Batch SMS section opens (read-only)
+    priority: P1
+    asserts:
+      - Batch SMS UI/empty state; no batch send
+    risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
+  - id: TC-APP-SMS-04
+    title: Send SMS validation without send
+    priority: P2
+    asserts:
+      - Validation on empty/invalid recipient; abort before network send
+    risk: high
+  - id: TC-APP-SMS-05
+    title: SMS nav trio reachable
+    priority: P1
+    asserts:
+      - Send SMS, Batch SMS, SMS History each prove destination
+    risk: medium
+    implemented: suites/app/calls-sms-smoke.spec.ts
+
+  # Studio
+  - id: TC-APP-STUDIO-01
+    title: Pathway section opens
+    priority: P1
+    asserts:
+      - Pathway-specific landmark; not merely no 404
+    risk: medium
+    implemented: suites/app/studio-smoke.spec.ts
+  - id: TC-APP-STUDIO-02
+    title: Character section opens
+    priority: P1
+    asserts:
+      - Character-specific landmark / empty state
+    risk: medium
+    implemented: suites/app/studio-smoke.spec.ts
+  - id: TC-APP-STUDIO-03
+    title: Voices section opens
+    priority: P1
+    asserts:
+      - Voices library/list or empty state
+    risk: medium
+    implemented: suites/app/studio-smoke.spec.ts
+    note: Nav open only — create/save not clicked
+  - id: TC-APP-STUDIO-04
+    title: Pathway create entry visible (no save)
+    priority: P2
+    asserts:
+      - New/create visible; abandon before persist
+    risk: medium
+  - id: TC-APP-STUDIO-05
+    title: Character create entry visible (no save)
+    priority: P2
+    asserts:
+      - New/create visible; abandon before persist
+    risk: medium
+
+  # Billing
+  - id: TC-APP-BILLING-01
+    title: Billing shows balance chrome read-only
+    priority: P1
+    asserts:
+      - Balance amount or placeholder + Manage Credits on Billing section
+      - Do not complete purchase
+    risk: high
+    implemented: suites/app/billing-readonly.spec.ts
+  - id: TC-APP-BILLING-02
+    title: Manage Credits opens without purchase
+    priority: P1
+    asserts:
+      - Credits UI visible; do not complete checkout/card
+    risk: high
+    implemented: suites/app/billing-readonly.spec.ts
+    note: Opens Manage Credits UI only — no Pay/Complete purchase
+
+  - id: TC-APP-BILLING-03
+    title: Billing history or invoices empty/list
+    priority: P2
+    asserts:
+      - Billing-specific history landmark
+    risk: medium
+  - id: TC-APP-BILLING-04
+    title: Purchase CTA present and gated
+    priority: P2
+    asserts:
+      - Buy/upgrade visible; abort before charge
+    risk: high
+  - id: TC-APP-BILLING-05
+    title: Account Settings billing link consistency
+    priority: P2
+    asserts:
+      - From Account Settings, billing/credits reaches same chrome as Billing nav
+    risk: low
+
+  # Untreated domains
+  - id: TC-APP-TASKS-01
+    title: Tasks section opens
+    priority: P2
+    asserts: [Tasks list or empty state]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-KB-01
+    title: Knowledge Base opens
+    priority: P2
+    asserts: [KB list/empty state; no destructive delete]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-MEMORY-01
+    title: Memory section opens
+    priority: P2
+    asserts: [Memory UI/empty state; no wipe]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-CRM-01
+    title: CRM section opens
+    priority: P2
+    asserts: [CRM list/empty state; no irreversible delete]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+    note: Do not Connect/Sync live CRM
+  - id: TC-APP-INTEG-01
+    title: Integrations section opens
+    priority: P2
+    asserts: [Integrations UI; no connect that mutates secrets without mock]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SIP-01
+    title: SIP Trunks section opens
+    priority: P2
+    asserts: [SIP UI/empty state; no provision]
+    risk: high
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-AI-01
+    title: AI Intelligence section opens
+    priority: P2
+    asserts: [Section landmark; read-only]
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-CAMP-01
+    title: Campaigns list or empty state
+    priority: P1
+    asserts: [Campaigns landmark; no launch that spends credits]
+    risk: high
+    implemented: suites/app/campaigns-contacts-smoke.spec.ts
+  - id: TC-APP-CONTACTS-01
+    title: Contacts list or empty state
+    priority: P1
+    asserts: [Contacts landmark; no mass delete]
+    risk: medium
+    implemented: suites/app/campaigns-contacts-smoke.spec.ts
+  - id: TC-APP-SUPPORT-01
+    title: Support page loads
+    priority: P2
+    asserts: [Support content or contact form; submit out of scope]
+    risk: low
+    implemented: suites/app/untreated-nav.spec.ts

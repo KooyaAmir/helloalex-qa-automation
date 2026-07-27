@@ -1,0 +1,30 @@
+{
+  "name": "helloalex-qa-automation",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Parallel Playwright QA for Hello Alex — marketing staging + authenticated app staging",
+  "scripts": {
+    "test": "node scripts/run-env.cjs app-staging",
+    "test:marketing": "node scripts/run-env.cjs staging-a",
+    "test:staging-a": "node scripts/run-env.cjs staging-a",
+    "test:staging-b": "node scripts/run-env.cjs staging-b",
+    "test:app": "node scripts/run-env.cjs app-staging",
+    "test:desktop": "node scripts/run-env.cjs staging-a -- --project=desktop",
+    "test:headed": "node scripts/run-env.cjs staging-a -- --headed",
+    "test:app:headed": "node scripts/run-env.cjs app-staging -- --headed",
+    "sdk:triage": "node scripts/sdk-nightly-triage.mjs triage",
+    "nightly:local": "node scripts/sdk-nightly-triage.mjs all",
+    "test:gaps": "node scripts/run-env.cjs staging-a -- --project=desktop suites/link-crawl.spec.ts suites/perf-smoke.spec.ts suites/checkout-safe.spec.ts suites/video-call-smoke.spec.ts",
+    "test:gaps:b": "node scripts/run-env.cjs staging-b -- --project=desktop suites/link-crawl.spec.ts suites/perf-smoke.spec.ts suites/checkout-safe.spec.ts suites/video-call-smoke.spec.ts",
+    "report": "playwright show-report",
+    "bugs": "node scripts/build-bugs-report.mjs",
+    "load:probe": "node scripts/run-env.cjs staging-a load",
+    "load:probe:b": "node scripts/run-env.cjs staging-b load",
+    "load:probe:1k": "node scripts/run-env.cjs staging-a load:1k"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3"
+  }
+}

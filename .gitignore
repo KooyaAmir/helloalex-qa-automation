@@ -1,0 +1,12 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+reports/archive/
+.env
+.env.local
+.auth/
+*.log
+
+reports/latest/
+

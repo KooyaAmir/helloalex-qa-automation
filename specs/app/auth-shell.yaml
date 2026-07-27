@@ -1,0 +1,179 @@
+# Client app — Auth + Shell contracts
+# Spec owns this file. Builders implement matching TC-APP-* IDs only.
+# Ingested from Adversarial COVERAGE-GAPS.md (2026-07-24). Phase 1 suites cover *-01..03 + SHELL-02 only until Builders scheduled.
+
+suite: app-auth-shell
+host: https://dev-app.helloalex.ai
+auth: required
+risk_default: low
+status: active
+
+cases:
+  - id: TC-APP-AUTH-01
+    title: Valid credentials reach dashboard
+    steps:
+      - Open /login
+      - Submit valid QA_APP_EMAIL / QA_APP_PASSWORD
+    asserts:
+      - URL leaves /login
+      - Complementary sidebar Dashboard control visible
+    risk: medium
+    implemented: suites/app/auth.spec.ts
+
+  - id: TC-APP-AUTH-02
+    title: Invalid password stays on login
+    steps:
+      - Open /login with storage cleared
+      - Submit valid email + wrong password
+    asserts:
+      - Still on /login OR auth error toast (prefer alert / specific copy — not bare "error")
+    risk: low
+    note: Does not use shared storageState
+    implemented: suites/app/auth.spec.ts
+
+  - id: TC-APP-AUTH-03
+    title: Sign out returns to login
+    steps:
+      - Start authenticated
+      - Click Sign out
+    asserts:
+      - Land on /login
+      - Welcome back heading visible
+    risk: low
+    implemented: suites/app/auth.spec.ts
+
+  - id: TC-APP-AUTH-04
+    title: Empty credentials blocked on login
+    status: backlog
+    priority: P1
+    steps:
+      - Clear storage; open /login
+      - Submit empty email/password (or click Let me in disabled)
+    asserts:
+      - Remain on /login
+      - Inline validation or disabled submit
+      - No authenticated sidebar
+    risk: low
+
+  - id: TC-APP-AUTH-05
+    title: Session required for /
+    status: backlog
+    priority: P1
+    steps:
+      - Clear storage; goto /
+    asserts:
+      - Redirect to /login or unauthenticated gate
+      - No SIDEBAR_PRIMARY controls
+    risk: medium
+
+  - id: TC-APP-AUTH-06
+    title: Invalid email format stays on login
+    status: backlog
+    priority: P1
+    steps:
+      - Clear storage; bad email + any password; submit
+    asserts:
+      - Stay on /login
+      - Validation or auth error via role=alert / toast (not substring error alone)
+    risk: low
+
+  - id: TC-APP-SHELL-01
+    title: Dashboard greeting and balance chrome
+    steps:
+      - Open /
+    asserts:
+      - Heading matching /Hi /i OR Dashboard current
+      - Manage Credits visible
+    risk: low
+    implemented: suites/app/shell-nav.spec.ts
+    note: Adversarial flags OR-logic as weak — prefer greeting AND credits in a future tighten
+
+  - id: TC-APP-SHELL-02
+    title: Primary sidebar sections open without 404
+    steps:
+      - Click each primary nav label in SIDEBAR_PRIMARY
+    asserts:
+      - No visible "Client page not found"
+      - Main region (client-workspace-page or main) visible
+      - Nav complementary (has Dashboard) remains visible
+      - Prefer also URL or selected data-nav or section landmark (see SHELL-04)
+    risk: medium
+    implemented: suites/app/shell-nav.spec.ts
+    note: Suite hardened 2026-07-24 (no body tautology; scoped nav sidebar)
+    data:
+      SIDEBAR_PRIMARY:
+        - Dashboard
+        - Send Call
+        - Call History
+        - Send SMS
+        - Character
+        - Pathway
+        - Campaigns
+        - Contacts
+        - Phone Numbers
+        - Account Settings
+        - Billing
+        - Support
+
+  - id: TC-APP-SHELL-03
+    title: Sidebar inventory matches Spec list
+    priority: P0
+    steps:
+      - Authenticated /
+      - Collect complementary nav labels
+    asserts:
+      - Every SIDEBAR_PRIMARY and SIDEBAR_SECONDARY label visible
+      - Extras reported as Spec debt (do not soft-pass)
+    risk: medium
+    implemented: suites/app/shell-inventory.spec.ts
+    note: Live reconcile 2026-07-24 — data-tour buttons; fail on unexpected extras
+    data:
+      SIDEBAR_SECONDARY:
+        - Batch Call
+        - Batch SMS
+        - SMS History
+        - Tasks
+        - Voices
+        - Knowledge Base
+        - Memory
+        - CRM
+        - Integrations
+        - SIP Trunks
+        - AI Intelligence
+
+  - id: TC-APP-SHELL-04
+    title: Nav open proves destination (strengthen SHELL-02)
+    priority: P0
+    steps:
+      - Click each SIDEBAR_PRIMARY label
+    asserts:
+      - URL fragment/path OR selected data-nav OR unique main heading/empty-state for that label
+      - Forbid body-only / 404-text-only asserts
+    risk: medium
+    implemented: suites/app/shell-destination.spec.ts
+    note: Destination via aria-current=page and/or URL change and/or main heading; nav open only
+
+  - id: TC-APP-SHELL-05
+    title: Secondary nav opens without 404
+    priority: P0
+    steps:
+      - Click each SIDEBAR_SECONDARY label (after live reconcile)
+    asserts:
+      - Same destination-proof as SHELL-04
+      - Abort before any send/buy/charge
+    risk: medium
+    implemented: suites/app/shell-destination.spec.ts
+    note: Same assertNavDestination helper as SHELL-04; SAFETY abort before send/buy
+    data:
+      SIDEBAR_SECONDARY:
+        - Batch Call
+        - Batch SMS
+        - SMS History
+        - Tasks
+        - Voices
+        - Knowledge Base
+        - Memory
+        - CRM
+        - Integrations
+        - SIP Trunks
+        - AI Intelligence

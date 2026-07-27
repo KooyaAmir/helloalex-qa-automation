@@ -1,0 +1,40 @@
+name: Hello Alex App QA (nightly)
+
+# Primary surface: dev-app only (PROJECT-DECISIONS.md).
+# Human-only promotion: you approve what lands on main before trusting nightly.
+# Secrets required: QA_APP_EMAIL, QA_APP_PASSWORD (repo Actions secrets).
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:00 UTC daily
+    - cron: "0 6 * * *"
+
+jobs:
+  app-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Run app-staging suites
+        run: npm run test:app
+        env:
+          QA_ENV: app-staging
+          BASE_URL: https://dev-app.helloalex.ai
+          QA_APP_EMAIL: ${{ secrets.QA_APP_EMAIL }}
+          QA_APP_PASSWORD: ${{ secrets.QA_APP_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-qa-reports
+          path: |
+            reports/latest/
+            playwright-report/
+            test-results/
+          retention-days: 14
