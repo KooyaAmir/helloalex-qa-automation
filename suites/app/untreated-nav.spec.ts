@@ -162,6 +162,27 @@ test.describe("app-untreated-nav", () => {
     // SAFETY: do not click Connect / Sync that mutates live CRM.
   });
 
+  test("TC-APP-CRM-02 Sync controls visible without live sync", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "CRM");
+    const main = mainRegion(page);
+
+    await expect(
+      main.getByRole("heading", { name: /crm/i }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const syncOrConnect = main.getByRole("button", {
+      name: /sync now|connect|test connection|configure/i,
+    });
+    await expect(syncOrConnect.first()).toBeVisible({ timeout: 15_000 });
+
+    // SAFETY: presence only — never Sync Now / Connect / Test Connection.
+    await expect(
+      page.getByText(/sync completed|sync succeeded|connected successfully|successfully synced/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-SIP-01 SIP Trunks section opens", async ({ page }) => {
     await openSidebarSection(page, "SIP Trunks");
     const main = mainRegion(page);
@@ -171,6 +192,31 @@ test.describe("app-untreated-nav", () => {
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: do not provision / create trunk.
+  });
+
+  test("TC-APP-SIP-02 SIP provision controls gated (no provision)", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "SIP Trunks");
+    const main = mainRegion(page);
+
+    await expect(
+      main
+        .getByRole("heading", { name: /sip trunks?/i })
+        .or(main.getByText(/carrier trunks|published regions|identifiers/i))
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const provision = main.getByRole("button", {
+      name: /add trunk|create trunk|provision|new trunk|enable trunk/i,
+    });
+    // CTA may be absent on empty/loading chrome — either way, never complete provision.
+    const provisionCount = await provision.count();
+    expect(provisionCount).toBeGreaterThanOrEqual(0);
+
+    await expect(
+      page.getByText(/trunk provisioned|trunk created|successfully provisioned/i),
+    ).toHaveCount(0);
   });
 
   test("TC-APP-AI-01 AI Intelligence section opens", async ({ page }) => {

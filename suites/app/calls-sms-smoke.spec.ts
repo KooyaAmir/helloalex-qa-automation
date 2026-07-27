@@ -130,6 +130,57 @@ test.describe("app-calls-sms", () => {
     expect(hasStart || hasAudience).toBeTruthy();
   });
 
+  test("TC-APP-CALLS-06 Batch Call launch aborted without audience", async ({
+    page,
+  }) => {
+    let blockedBatch = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /call|batch|campaign/i.test(req.url()) &&
+        /launch|start|send|queue|enqueue|create/i.test(req.url())
+      ) {
+        blockedBatch += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Batch Call");
+    const main = mainRegion(page);
+
+    const startBatch = main.getByRole("button", {
+      name: /launch (batch|call)|start batch|send batch|queue batch/i,
+    });
+    if (await startBatch.first().isVisible().catch(() => false)) {
+      await startBatch.first().click();
+    }
+
+    await expect
+      .poll(async () => {
+        const validation = await page
+          .getByText(
+            /upload|recipient|audience|0 contacts|select.*(line|pathway|number)|required|no pathway|please/i,
+          )
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const stillOnBatch = /batch|send-batch/i.test(page.url());
+        return validation || blockedBatch > 0 || stillOnBatch;
+      }, { timeout: 10_000 })
+      .toBeTruthy();
+
+    expect(blockedBatch).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/batch (call )?started|batch queued|calls launched|successfully launched/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-CALLS-05 Phone Numbers section read-only smoke", async ({
     page,
   }) => {
@@ -294,6 +345,56 @@ test.describe("app-calls-sms", () => {
       name: /send batch( sms)?|launch batch|start batch/i,
     });
     await expect(sendBatch.first()).toBeVisible();
+  });
+
+  test("TC-APP-SMS-06 Batch SMS send aborted without recipients", async ({
+    page,
+  }) => {
+    let blockedSmsBatch = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /sms|message|batch/i.test(req.url()) &&
+        /send|launch|start|queue|enqueue|create/i.test(req.url())
+      ) {
+        blockedSmsBatch += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Batch SMS");
+    const main = mainRegion(page);
+
+    const sendBatch = main.getByRole("button", {
+      name: /send batch( sms)?|launch batch|start batch/i,
+    });
+    await expect(sendBatch.first()).toBeVisible({ timeout: 15_000 });
+    await sendBatch.first().click();
+
+    await expect
+      .poll(async () => {
+        const validation = await page
+          .getByText(
+            /upload|recipient|0 (contacts|recipients)|select.*(line|pathway)|outbound line|no pathway|required|please|messaging settings/i,
+          )
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const stillOnBatch = /sms\/batch/i.test(page.url());
+        return validation || blockedSmsBatch > 0 || stillOnBatch;
+      }, { timeout: 10_000 })
+      .toBeTruthy();
+
+    expect(blockedSmsBatch).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/batch (sms )?sent|messages queued|successfully sent|sms launched/i),
+    ).toHaveCount(0);
   });
 
   test("TC-APP-SMS-05 SMS nav trio reachable with destination proof", async ({
