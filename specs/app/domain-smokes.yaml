@@ -212,12 +212,29 @@ cases:
     asserts: [Campaigns landmark; no launch that spends credits]
     risk: high
     implemented: suites/app/campaigns-contacts-smoke.spec.ts
+  - id: TC-APP-CAMP-02
+    title: New campaign entry opens without launch
+    priority: P2
+    asserts:
+      - Launch Campaign / Launch Your First Campaign entry opens wizard
+      - Abandon before Confirm/Start/Run that spends credits
+    risk: high
+    implemented: suites/app/campaigns-contacts-smoke.spec.ts
+    note: Entry CTA is Launch Campaign — final launch not completed
   - id: TC-APP-CONTACTS-01
     title: Contacts list or empty state
     priority: P1
     asserts: [Contacts landmark; no mass delete]
     risk: medium
     implemented: suites/app/campaigns-contacts-smoke.spec.ts
+  - id: TC-APP-CONTACTS-02
+    title: Add contact entry without mass delete
+    priority: P2
+    asserts:
+      - Upload CSV / Upload Contacts form visible; abandon without upload or mass delete
+    risk: medium
+    implemented: suites/app/campaigns-contacts-smoke.spec.ts
+    note: Staging Contacts is CSV-list oriented (Upload CSV), not single-contact Add
   - id: TC-APP-SUPPORT-01
     title: Support page loads
     priority: P2
