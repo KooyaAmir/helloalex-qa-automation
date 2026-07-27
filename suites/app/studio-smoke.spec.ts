@@ -3,10 +3,10 @@ import { mainRegion, openSidebarSection } from "./shell-helpers";
 
 /**
  * Studio domain smokes — uses storageState from auth.setup.ts (app project).
- * Spec: specs/app/domain-smokes.yaml (TC-APP-STUDIO-01..05)
+ * Spec: specs/app/domain-smokes.yaml (TC-APP-STUDIO-01..06)
  *
  * SAFETY (QA-POLICY-APP): Open Pathway / Character / Voices only.
- * Create entry may open; abandon without Save. Do NOT persist pathways/characters.
+ * Create/clone entry may open; abandon without Save/Clone. Never complete voice clone.
  */
 
 test.describe("app-studio", () => {
@@ -175,5 +175,67 @@ test.describe("app-studio", () => {
 
     expect(blockedPersist).toBeGreaterThanOrEqual(0);
     await expect(page.getByText(/character saved|successfully created/i)).toHaveCount(0);
+  });
+
+  test("TC-APP-STUDIO-06 Clone Voice entry opens without clone", async ({
+    page,
+  }) => {
+    let blockedClone = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /voice|clone|eleven/i.test(req.url()) &&
+        /clone|train|upload|create|persist|save/i.test(req.url())
+      ) {
+        blockedClone += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Voices");
+    const main = mainRegion(page);
+    // Prefer page CTA over sidebar Quick Actions chrome.
+    const cloneBtn = main
+      .getByRole("button", { name: /clone new voice|clone voice|create voice/i })
+      .first();
+    await expect(cloneBtn).toBeVisible({ timeout: 15_000 });
+    await cloneBtn.click();
+
+    await expect
+      .poll(async () => {
+        const dialog = await page.getByRole("dialog").isVisible().catch(() => false);
+        const wizard = await page
+          .getByRole("heading", { name: /clone|record|upload.*voice|new voice/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const cloneCopy = await page
+          .getByText(/clone your (own )?voice|record|upload audio|voice sample/i)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return dialog || wizard || cloneCopy;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: abandon — never complete Clone / Upload / Train (denylist).
+    await page.keyboard.press("Escape");
+    const cancel = page.getByRole("button", { name: /cancel|close|discard|back/i });
+    if (await cancel.first().isVisible().catch(() => false)) {
+      await cancel.first().click();
+    } else {
+      await openSidebarSection(page, "Voices");
+    }
+
+    expect(blockedClone).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/voice cloned|clone complete|training started|successfully cloned/i),
+    ).toHaveCount(0);
   });
 });

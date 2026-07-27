@@ -195,6 +195,68 @@ test.describe("app-untreated-nav", () => {
     // SAFETY: do not wipe memory.
   });
 
+  test("TC-APP-MEMORY-02 Create Memory Store entry without persist", async ({
+    page,
+  }) => {
+    let blockedPersist = 0;
+    await page.route(/\/(api|v1|graphql)\b/i, async (route) => {
+      const req = route.request();
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method())) {
+        await route.continue();
+        return;
+      }
+      if (
+        /memory/i.test(req.url()) &&
+        /create|save|persist|upload|update|wipe|delete/i.test(req.url())
+      ) {
+        blockedPersist += 1;
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await openSidebarSection(page, "Memory");
+    const main = mainRegion(page);
+    const createBtn = main
+      .getByRole("button", {
+        name: /create your first memory store|create memory store|new memory/i,
+      })
+      .first();
+    await expect(createBtn).toBeVisible({ timeout: 15_000 });
+    await createBtn.click();
+
+    await expect
+      .poll(async () => {
+        const dialog = await page.getByRole("dialog").isVisible().catch(() => false);
+        const heading = await page
+          .getByRole("heading", { name: /create memory|new memory|memory store/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const nameField = await page
+          .getByRole("textbox")
+          .or(page.getByPlaceholder(/name|memory/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return dialog || heading || nameField;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: Cancel / Escape — never Create persist / wipe.
+    await page.keyboard.press("Escape");
+    const cancel = page.getByRole("button", { name: /cancel|close|discard/i });
+    if (await cancel.first().isVisible().catch(() => false)) {
+      await cancel.first().click();
+    }
+
+    expect(blockedPersist).toBeGreaterThanOrEqual(0);
+    await expect(
+      page.getByText(/memory (store )?created|successfully created|memory wiped/i),
+    ).toHaveCount(0);
+  });
+
   test("TC-APP-INTEG-01 Integrations section opens", async ({ page }) => {
     await openSidebarSection(page, "Integrations");
     const main = mainRegion(page);
@@ -215,5 +277,50 @@ test.describe("app-untreated-nav", () => {
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: form submit optional / out of scope.
+  });
+
+  test("TC-APP-SUPPORT-02 Support Tickets chrome without submit", async ({
+    page,
+  }) => {
+    await openSidebarSection(page, "Support");
+    const main = mainRegion(page);
+
+    await expect(
+      main.getByRole("heading", { name: /support center|support|help/i }).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    const ticketsTab = main
+      .getByRole("button", { name: /support tickets|tickets/i })
+      .or(main.getByRole("tab", { name: /tickets/i }))
+      .first();
+    await expect(ticketsTab).toBeVisible({ timeout: 15_000 });
+    await ticketsTab.click();
+
+    await expect
+      .poll(async () => {
+        const ticketChrome = await main
+          .getByText(/ticket|no tickets|open a ticket|submit|conversation|inbox/i)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const composer = await main
+          .getByRole("textbox")
+          .or(main.getByPlaceholder(/describe|message|subject/i))
+          .first()
+          .isVisible()
+          .catch(() => false);
+        const newTicket = await main
+          .getByRole("button", { name: /new ticket|create ticket|submit ticket/i })
+          .first()
+          .isVisible()
+          .catch(() => false);
+        return ticketChrome || composer || newTicket;
+      }, { timeout: 15_000 })
+      .toBeTruthy();
+
+    // SAFETY: never submit a support ticket from automation.
+    await expect(page.getByText(/ticket submitted|ticket created|thanks for contacting/i)).toHaveCount(
+      0,
+    );
   });
 });

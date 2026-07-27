@@ -44,7 +44,7 @@ cases:
 
   - id: TC-APP-AUTH-04
     title: Empty credentials blocked on login
-    status: backlog
+    status: active
     priority: P1
     steps:
       - Clear storage; open /login
@@ -54,10 +54,11 @@ cases:
       - Inline validation or disabled submit
       - No authenticated sidebar
     risk: low
+    implemented: suites/app/auth.spec.ts
 
   - id: TC-APP-AUTH-05
     title: Session required for /
-    status: backlog
+    status: active
     priority: P1
     steps:
       - Clear storage; goto /
@@ -65,10 +66,11 @@ cases:
       - Redirect to /login or unauthenticated gate
       - No SIDEBAR_PRIMARY controls
     risk: medium
+    implemented: suites/app/auth.spec.ts
 
   - id: TC-APP-AUTH-06
     title: Invalid email format stays on login
-    status: backlog
+    status: active
     priority: P1
     steps:
       - Clear storage; bad email + any password; submit
@@ -76,6 +78,7 @@ cases:
       - Stay on /login
       - Validation or auth error via role=alert / toast (not substring error alone)
     risk: low
+    implemented: suites/app/auth.spec.ts
 
   - id: TC-APP-SHELL-01
     title: Dashboard greeting and balance chrome

@@ -38,6 +38,7 @@ cases:
     asserts:
       - Validation visible; no outbound call (intercept OK)
     risk: high
+    implemented: suites/app/calls-sms-smoke.spec.ts
   - id: TC-APP-CALLS-05
     title: Phone Numbers section read-only smoke
     priority: P1
@@ -130,6 +131,15 @@ cases:
       - New/create visible; abandon before persist
     risk: medium
     implemented: suites/app/studio-smoke.spec.ts
+  - id: TC-APP-STUDIO-06
+    title: Clone Voice entry opens without clone
+    priority: P2
+    asserts:
+      - Clone New Voice entry opens
+      - Abandon before clone/train/upload (denylist)
+    risk: high
+    implemented: suites/app/studio-smoke.spec.ts
+    note: CTA is Clone New Voice — never complete clone
 
   # Billing
   - id: TC-APP-BILLING-01
@@ -216,6 +226,14 @@ cases:
     asserts: [Memory UI/empty state; no wipe]
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-MEMORY-02
+    title: Create Memory Store entry without persist
+    priority: P2
+    asserts:
+      - Create Memory Store entry opens
+      - Abandon without persist / wipe
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-CRM-01
     title: CRM section opens
     priority: P2
@@ -274,5 +292,13 @@ cases:
     title: Support page loads
     priority: P2
     asserts: [Support content or contact form; submit out of scope]
+    risk: low
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SUPPORT-02
+    title: Support Tickets chrome without submit
+    priority: P2
+    asserts:
+      - Support Tickets tab/chrome visible
+      - Do not submit a ticket
     risk: low
     implemented: suites/app/untreated-nav.spec.ts

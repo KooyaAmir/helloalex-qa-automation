@@ -62,6 +62,13 @@ cases:
       - No wipe
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-MEMORY-02
+    title: Create Memory Store entry without persist
+    asserts:
+      - Create Memory Store entry opens
+      - Abandon without persist / wipe
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-INTEG-01
     title: Integrations section opens
     asserts:
@@ -74,5 +81,12 @@ cases:
     asserts:
       - Support content landmark
       - Submit out of scope
+    risk: low
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-SUPPORT-02
+    title: Support Tickets chrome without submit
+    asserts:
+      - Support Tickets tab/chrome visible
+      - Do not submit a ticket
     risk: low
     implemented: suites/app/untreated-nav.spec.ts
