@@ -69,6 +69,13 @@ cases:
       - Section landmark; read-only
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-AI-02
+    title: Generate Analysis control gated (no apply)
+    asserts:
+      - Generate Analysis visible
+      - Do not run/apply analysis to pathways
+    risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-MEMORY-01
     title: Memory section opens
     asserts:
@@ -89,6 +96,13 @@ cases:
       - Integrations landmark
       - Do not complete OAuth / connect that mutates secrets
     risk: medium
+    implemented: suites/app/untreated-nav.spec.ts
+  - id: TC-APP-INTEG-02
+    title: New API key entry without persist
+    asserts:
+      - New API key entry opens
+      - Abandon before create/generate persist
+    risk: high
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-SUPPORT-01
     title: Support page loads
