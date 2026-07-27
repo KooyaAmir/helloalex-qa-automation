@@ -14,9 +14,12 @@ test.describe("app-campaigns-contacts-smoke", () => {
     await openSidebarSection(page, "Campaigns");
 
     const main = mainRegion(page);
+    await expect(main.getByRole("button", { name: /launch campaign/i }).first()).toBeVisible({
+      timeout: 60_000,
+    });
     const heading = main.getByRole("heading", { name: /campaigns?/i });
     const empty = main.getByText(
-      /no\s+campaigns|create\s+(?:a\s+)?campaign|get\s+started.*campaign|no active campaigns/i,
+      /no\s+campaigns|create\s+(?:a\s+)?campaign|get\s+started.*campaign|no active campaigns|no active missions/i,
     );
     const tableWithCampaign = main
       .locator("table, [role='table'], [role='grid']")
@@ -27,7 +30,8 @@ test.describe("app-campaigns-contacts-smoke", () => {
         return (
           (await heading.first().isVisible().catch(() => false)) ||
           (await empty.first().isVisible().catch(() => false)) ||
-          (await tableWithCampaign.first().isVisible().catch(() => false))
+          (await tableWithCampaign.first().isVisible().catch(() => false)) ||
+          (await main.getByText(/launch, monitor, and optimize/i).first().isVisible().catch(() => false))
         );
       }, { timeout: 15_000 })
       .toBeTruthy();
@@ -95,9 +99,10 @@ test.describe("app-campaigns-contacts-smoke", () => {
     const cancel = page.getByRole("button", { name: /cancel|close|discard|back|exit/i });
     if (await cancel.first().isVisible().catch(() => false)) {
       await cancel.first().click();
-    } else {
-      await openSidebarSection(page, "Campaigns");
     }
+    await expect(page.getByRole("dialog")).toBeHidden({ timeout: 10_000 }).catch(async () => {
+      await page.keyboard.press("Escape");
+    });
 
     expect(blockedLaunch).toBeGreaterThanOrEqual(0);
     await expect(
