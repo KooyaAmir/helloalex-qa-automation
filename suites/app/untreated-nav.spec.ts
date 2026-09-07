@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { mainRegion, openSidebarSection } from "./shell-helpers";
+import {
+  assertNavDestination,
+  mainRegion,
+  openSidebarSection,
+} from "./shell-helpers";
 
 /**
  * Untreated nav smokes — Tasks, Knowledge Base, CRM, SIP Trunks, AI Intelligence.
@@ -12,7 +16,7 @@ import { mainRegion, openSidebarSection } from "./shell-helpers";
 
 test.describe("app-untreated-nav", () => {
   test("TC-APP-TASKS-01 Tasks section opens", async ({ page }) => {
-    await openSidebarSection(page, "Tasks");
+    await assertNavDestination(page, "Tasks");
     const main = mainRegion(page);
     const landmark = main
       .getByRole("heading", { name: /tasks?/i })
@@ -83,12 +87,12 @@ test.describe("app-untreated-nav", () => {
   });
 
   test("TC-APP-KB-01 Knowledge Base opens", async ({ page }) => {
-    await openSidebarSection(page, "Knowledge Base");
+    await assertNavDestination(page, "Knowledge Base");
     const main = mainRegion(page);
     const landmark = main
       .getByRole("heading", { name: /knowledge bases?/i })
-      .or(main.getByText(/no knowledge|add (a )?document|upload|empty/i))
-      .or(main.getByPlaceholder(/search/i))
+      .or(main.getByText(/no knowledge|add (a )?document|create.*knowledge base/i))
+      .or(main.getByPlaceholder(/search knowledge|search (kb|documents?)/i))
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
     // SAFETY: do not delete documents.
@@ -152,7 +156,7 @@ test.describe("app-untreated-nav", () => {
   });
 
   test("TC-APP-CRM-01 CRM section opens", async ({ page }) => {
-    await openSidebarSection(page, "CRM");
+    await assertNavDestination(page, "CRM");
     const main = mainRegion(page);
     const landmark = main
       .getByRole("heading", { name: /crm/i })
@@ -184,7 +188,7 @@ test.describe("app-untreated-nav", () => {
   });
 
   test("TC-APP-SIP-01 SIP Trunks section opens", async ({ page }) => {
-    await openSidebarSection(page, "SIP Trunks");
+    await assertNavDestination(page, "SIP Trunks");
     const main = mainRegion(page);
     const landmark = main
       .getByRole("heading", { name: /sip trunks?/i })
@@ -210,21 +214,28 @@ test.describe("app-untreated-nav", () => {
     const provision = main.getByRole("button", {
       name: /add trunk|create trunk|provision|new trunk|enable trunk/i,
     });
-    // CTA may be absent on empty/loading chrome — either way, never complete provision.
-    const provisionCount = await provision.count();
-    expect(provisionCount).toBeGreaterThanOrEqual(0);
+    const emptyOrChrome = main.getByText(
+      /no (sip )?trunks|add trunk|carrier trunks|published regions|identifiers/i,
+    );
+    const provisionVisible = await provision.first().isVisible().catch(() => false);
+    const chromeVisible = await emptyOrChrome.first().isVisible().catch(() => false);
+    expect(
+      provisionVisible || chromeVisible,
+      "Expected a SIP provision CTA or SIP empty/chrome copy — presence only, never click",
+    ).toBeTruthy();
 
+    // SAFETY: never complete trunk provision.
     await expect(
       page.getByText(/trunk provisioned|trunk created|successfully provisioned/i),
     ).toHaveCount(0);
   });
 
   test("TC-APP-AI-01 AI Intelligence section opens", async ({ page }) => {
-    await openSidebarSection(page, "AI Intelligence");
+    await assertNavDestination(page, "AI Intelligence");
     const main = mainRegion(page);
     const landmark = main
-      .getByRole("heading", { name: /ai intelligence|intelligence/i })
-      .or(main.getByText(/insights|no insights|intelligence/i))
+      .getByRole("heading", { name: /ai intelligence/i })
+      .or(main.getByText(/generate analysis|no insights|ai insights/i))
       .first();
     await expect(landmark).toBeVisible({ timeout: 15_000 });
   });

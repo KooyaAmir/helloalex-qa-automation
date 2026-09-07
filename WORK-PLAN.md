@@ -1,6 +1,8 @@
 # Hello Alex QA Automation — Work Plan
 
-**Target:** https://helloalex.ai  
+> **Superseded default:** Primary surface is now `https://dev-app.helloalex.ai` (`npm test` / `npm run test:app`). This file is the historical marketing-suite plan. See [PROJECT-DECISIONS.md](./PROJECT-DECISIONS.md).
+
+**Target (historical marketing):** https://dev.helloalex.ai (not production `helloalex.ai`)  
 **Rule:** Detect + document bugs with fix plans. **Do not change site code until a human approves.**
 
 ## Agents
@@ -27,8 +29,9 @@ Playwright + TypeScript, `fullyParallel: true`, multi-project viewports (desktop
 ## Commands
 
 ```bash
-npm test          # run all suites in parallel
-npm run bugs      # rebuild bugs.md from last JSON (if needed)
+npm test                 # app-staging (dev-app) — current default
+npm run test:marketing   # historical marketing suites on staging-a
+npm run bugs             # rebuild bugs.md from last JSON
 ```
 
 ## Outputs

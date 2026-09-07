@@ -14,6 +14,9 @@ test.describe("app-auth", () => {
     await expect(
       page.getByRole("complementary").getByRole("button", { name: "Dashboard", exact: true }),
     ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("button", { name: "Manage Credits", exact: true }),
+    ).toBeVisible();
   });
 
   test("TC-APP-AUTH-02 invalid password stays on login", async ({ page }) => {
@@ -45,6 +48,9 @@ test.describe("app-auth", () => {
     await page.getByRole("button", { name: /sign out/i }).click();
     await page.waitForURL(/\/login/i, { timeout: 20_000 });
     await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await expect(
+      page.getByRole("complementary").getByRole("button", { name: "Dashboard", exact: true }),
+    ).toHaveCount(0);
   });
 
   test("TC-APP-AUTH-04 empty credentials blocked on login", async ({ page }) => {
@@ -65,11 +71,22 @@ test.describe("app-auth", () => {
       page.getByRole("complementary").getByRole("button", { name: "Dashboard", exact: true }),
     ).toHaveCount(0);
 
-    // Prefer disabled submit or HTML5/inline validation
     const invalidEmail = await email.evaluate(
       (el) => (el as HTMLInputElement).validity?.valid === false,
     ).catch(() => false);
-    expect(disabled || invalidEmail || page.url().includes("/login")).toBeTruthy();
+    const invalidPassword = await password.evaluate(
+      (el) => (el as HTMLInputElement).validity?.valid === false,
+    ).catch(() => false);
+    const alertOrToast = await page
+      .getByRole("alert")
+      .or(page.getByText(/required|enter.*(email|password)|email.*required|password.*required/i))
+      .first()
+      .isVisible()
+      .catch(() => false);
+    expect(
+      disabled || invalidEmail || invalidPassword || alertOrToast,
+      "Expected disabled submit, HTML5 validation, or alert/toast — staying on /login alone is not enough",
+    ).toBeTruthy();
   });
 
   test("TC-APP-AUTH-05 session required for /", async ({ page }) => {
@@ -132,8 +149,8 @@ test.describe("app-auth", () => {
       .catch(() => false);
 
     expect(
-      disabled || htmlInvalid || alertOrToast || page.url().includes("/login"),
-      "Expected validation, disabled submit, or stay on /login",
+      disabled || htmlInvalid || alertOrToast,
+      "Expected disabled submit, HTML5/type mismatch, or alert/toast — staying on /login alone is not enough",
     ).toBeTruthy();
   });
 });

@@ -1,7 +1,9 @@
 # Go-live & capacity status
 
+> Historical marketing-staging snapshot. Primary QA target is now `https://dev-app.helloalex.ai` (not production `helloalex.ai`). See [PROJECT-DECISIONS.md](./PROJECT-DECISIONS.md).
+
 **Generated:** 2026-07-24  
-**Site:** https://helloalex.ai
+**Site (historical):** https://dev.helloalex.ai
 
 ## Short answers
 

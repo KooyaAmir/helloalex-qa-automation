@@ -10,5 +10,11 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": ["suites/**/*.ts", "fixtures/**/*.ts", "utils/**/*.ts", "playwright.config.ts"]
+  "include": [
+    "suites/**/*.ts",
+    "fixtures/**/*.ts",
+    "utils/**/*.ts",
+    "utils/**/*.d.ts",
+    "playwright.config.ts"
+  ]
 }

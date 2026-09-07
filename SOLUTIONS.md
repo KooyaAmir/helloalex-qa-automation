@@ -1,8 +1,10 @@
 # Solutions & remaining gaps
 
-**Site:** https://helloalex.ai  
+> Historical marketing-suite notes. Primary QA target is `https://dev-app.helloalex.ai` (not production).
+
+**Site (historical marketing):** https://dev.helloalex.ai  
 **Updated:** 2026-07-24  
-**Constraint:** This repo cannot patch production UI without the Hello Alex app source.
+**Constraint:** This repo cannot patch product UI without the Hello Alex app source. Phase 5 product PRs stay blocked.
 
 ---
 

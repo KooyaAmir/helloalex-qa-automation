@@ -10,6 +10,7 @@ import {
 const { profile, baseURL: BASE_URL } = resolveBaseUrl();
 assertStagingBConfigured(BASE_URL, profile);
 assertAppStagingConfigured(BASE_URL, profile);
+// Production hosts are refused. Do not set ALLOW_PROD=1. app-staging never overrides.
 const isProd = assertNotProd(BASE_URL);
 const isApp = profile === "app-staging";
 const storageState = path.join(process.cwd(), ".auth", "app-user.json");

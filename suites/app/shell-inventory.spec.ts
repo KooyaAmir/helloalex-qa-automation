@@ -27,7 +27,7 @@ test.describe("app-shell-inventory", () => {
       `Missing Spec sidebar labels: ${missing.join(", ") || "(none)"}`,
     ).toEqual([]);
 
-    const expectedSet = new Set(expected);
+    const expectedSet = new Set<string>(expected);
     const extras = live.filter((label) => !expectedSet.has(label));
     expect(
       extras,

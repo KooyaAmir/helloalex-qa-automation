@@ -4,7 +4,7 @@ Parallel Playwright suites for the Hello Alex **client app** on staging.
 
 **Primary scope:** `https://dev-app.helloalex.ai` (`npm test` / `npm run test:app`). See [PROJECT-DECISIONS.md](./PROJECT-DECISIONS.md).
 
-**Policy:** Detect regressions + write fix plans. No product PRs unless you approve specific TCs. Production blocked unless `ALLOW_PROD=1`.
+**Policy:** Detect regressions + write fix plans. No product PRs unless you approve specific TCs. Production hosts (`helloalex.ai` / `app.helloalex.ai`) are **blocked**. Do **not** set `ALLOW_PROD=1`.
 
 ## Setup
 
@@ -20,6 +20,7 @@ cp .env.example .env
 ```bash
 npm test                 # app-staging (dev-app)
 npm run test:app         # same
+npm run check:guards     # offline prod-denylist + reporter ID checks
 npm run test:marketing   # optional marketing staging-a
 ```
 

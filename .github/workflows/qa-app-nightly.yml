@@ -10,10 +10,19 @@ on:
     # 06:00 UTC daily
     - cron: "0 6 * * *"
 
+concurrency:
+  group: qa-app-nightly
+  cancel-in-progress: false
+
 jobs:
   app-staging:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      QA_ENV: app-staging
+      BASE_URL: https://dev-app.helloalex.ai
+      # Must stay empty — never production (PROJECT-DECISIONS).
+      ALLOW_PROD: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,6 +30,20 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Offline safety guards
+        run: npm run check:guards
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Refuse production escape hatch
+        run: |
+          if [ "${ALLOW_PROD:-}" = "1" ]; then
+            echo "::error::ALLOW_PROD is forbidden on this nightly. Staging only: https://dev-app.helloalex.ai"
+            exit 1
+          fi
+          if [ "$BASE_URL" != "https://dev-app.helloalex.ai" ]; then
+            echo "::error::Nightly is locked to https://dev-app.helloalex.ai (got BASE_URL=$BASE_URL)."
+            exit 1
+          fi
       - name: Require QA auth secrets
         env:
           QA_APP_EMAIL: ${{ secrets.QA_APP_EMAIL }}
@@ -29,6 +52,7 @@ jobs:
           if [ -z "$QA_APP_EMAIL" ] || [ -z "$QA_APP_PASSWORD" ]; then
             echo "::error::Missing Actions secrets QA_APP_EMAIL and/or QA_APP_PASSWORD."
             echo "Add them under Settings → Secrets and variables → Actions, then re-run."
+            echo "Do not put production credentials here — nightly is staging-only."
             exit 1
           fi
       - run: npx playwright install chromium --with-deps
@@ -50,8 +74,14 @@ jobs:
             echo "- Env: \`QA_ENV=app-staging\`"
             echo "- Result: **${{ steps.playwright.outcome }}**"
             echo "- Artifacts: \`app-qa-reports\` (reports/latest, playwright-report, test-results)"
+            if [ -f reports/latest/bugs.json ]; then
+              echo "- Bug report count: \`$(node -e "console.log(require('./reports/latest/bugs.json').bugCount ?? 0)")\`"
+            else
+              echo "- Bug report count: _(no bugs.json — run may have failed before reporter flush)_"
+            fi
             echo ""
             echo "Human-only promotion — do not treat green nightly as auto-merge authority."
+            echo "Production hosts are blocked. Do not set ALLOW_PROD=1."
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()

@@ -60,20 +60,52 @@ function resolveBaseUrl() {
   return { profile, baseURL };
 }
 
+/** Hostname only — strips protocol, path, port, trailing dot. */
+function hostnameOf(baseURL) {
+  const raw = String(baseURL || "").trim();
+  if (!raw) return "";
+  try {
+    const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    return new URL(href).hostname.toLowerCase().replace(/\.$/, "");
+  } catch {
+    return raw
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/.*$/, "")
+      .replace(/:\d+$/, "")
+      .toLowerCase()
+      .replace(/\.$/, "");
+  }
+}
+
+function isProductionHost(baseURL) {
+  const host = hostnameOf(baseURL);
+  const isProdMarketing = host === "helloalex.ai" || host === "www.helloalex.ai";
+  const isProdApp = host === "app.helloalex.ai" || host === "www.app.helloalex.ai";
+  return isProdMarketing || isProdApp;
+}
+
 function assertNotProd(baseURL) {
-  const host = baseURL.replace(/^https?:\/\//i, "").replace(/\/$/, "").toLowerCase();
-  const isProdMarketing =
-    host === "helloalex.ai" || host === "www.helloalex.ai";
-  const isProdApp =
-    host === "app.helloalex.ai" || host === "www.app.helloalex.ai";
-  const isProd = isProdMarketing || isProdApp;
+  const isProd = isProductionHost(baseURL);
+  const profile = (process.env.QA_ENV || "").toLowerCase();
+
+  // Locked decision: app-staging is never production, even if ALLOW_PROD is set.
+  if (isProd && profile === "app-staging") {
+    throw new Error(
+      [
+        "Refusing to run app-staging against PRODUCTION.",
+        "QA_ENV=app-staging is locked to https://dev-app.helloalex.ai.",
+        "ALLOW_PROD does not override this (PROJECT-DECISIONS / Amir).",
+        `Current BASE_URL=${baseURL}`,
+      ].join("\n"),
+    );
+  }
 
   if (isProd && process.env.ALLOW_PROD !== "1") {
     throw new Error(
       [
         "Refusing to run against PRODUCTION.",
         "Use staging-a / staging-b (marketing) or app-staging (dev-app).",
-        "Set ALLOW_PROD=1 only if you intentionally need prod.",
+        "Do not set ALLOW_PROD=1 — this program stays on staging.",
         `Current BASE_URL=${baseURL}`,
       ].join("\n"),
     );
@@ -124,6 +156,8 @@ function assertAppStagingConfigured(baseURL, profile) {
 
 module.exports = {
   resolveBaseUrl,
+  hostnameOf,
+  isProductionHost,
   assertNotProd,
   assertStagingBConfigured,
   assertAppStagingConfigured,

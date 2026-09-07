@@ -9,7 +9,7 @@ Hard-gate destructive or prod-unsafe automation.
 ## Must fail the gate if
 
 - Suite can click through to real outbound call, SMS send, number purchase, or payment
-- `BASE_URL` is production without `ALLOW_PROD=1`
+- `BASE_URL` is production (`helloalex.ai` / `app.helloalex.ai`) — `ALLOW_PROD` must stay unset; `app-staging` never overrides this
 - Credentials appear in committed files or reports
 - Storage state / cookies committed under `.auth/` (must be gitignored)
 - Marketing and app hosts mixed incorrectly in one profile without intent

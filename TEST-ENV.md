@@ -2,11 +2,11 @@
 
 | Profile | URL | Command |
 |---------|-----|---------|
-| **staging-a** (default) | `https://dev.helloalex.ai` | `npm run test:staging-a` |
+| **app-staging** (default `npm test`) | `https://dev-app.helloalex.ai` | `npm test` / `npm run test:app` |
+| **staging-a** (optional marketing) | `https://dev.helloalex.ai` | `npm run test:staging-a` |
 | **staging-b** | second marketing URL (`envs/staging-b.env`) | `npm run test:staging-b` |
-| **app-staging** | `https://dev-app.helloalex.ai` | `npm run test:app` |
 
-Production (`helloalex.ai` / `app.helloalex.ai`) is blocked unless `ALLOW_PROD=1`.
+Production (`helloalex.ai` / `app.helloalex.ai`) is **blocked**. Do **not** set `ALLOW_PROD=1`. `QA_ENV=app-staging` never targets production even if that flag is present.
 
 ## App auth (required for `test:app`)
 

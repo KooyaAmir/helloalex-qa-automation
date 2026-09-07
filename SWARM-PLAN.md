@@ -15,7 +15,7 @@ Human approved the multi-agent supervised QA plan.
 | 2g Batch abort + CRM/SIP gate | **Merged** | CALLS-06, SMS-06, CRM-02, SIP-02 |
 | 2h Dashboard / Integrations / AI depth | **Merged** | DASH-01, INTEG-02, AI-02 |
 | 2i Campaigns full-flow QA | **Merged** | CAMP-03..10 + all tab destinations |
-| 3 Nightly + canvas | **Hardened** | Secrets gate + job summary; canvas coverage refresh |
+| 3 Nightly + canvas | **Hardened** | Secrets gate + job summary; canvas coverage refresh; 2026-09-07 offline `check:guards` + locked staging host |
 | 4 SDK loop | **Scaffolded** | Needs `@cursor/sdk` + `CURSOR_API_KEY` |
 | 5 Product PRs | **Blocked** | Connect app repo + approve TCs |
 
