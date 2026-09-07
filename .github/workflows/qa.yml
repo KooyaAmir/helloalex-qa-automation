@@ -1,14 +1,26 @@
 name: Hello Alex QA
 
+# Optional marketing staging (dev.helloalex.ai). Not the success metric —
+# primary app nightly is qa-app-nightly.yml (dev-app only).
+# Always go through run-env.cjs so prod denylist + profile guards apply.
+
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * *"
 
+concurrency:
+  group: qa-marketing-staging
+  cancel-in-progress: false
+
 jobs:
   playwright:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      QA_ENV: staging-a
+      BASE_URL: https://dev.helloalex.ai
+      ALLOW_PROD: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,12 +28,26 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Offline safety guards
+        run: npm run check:guards
+      - name: Refuse production
+        run: |
+          if [ "${ALLOW_PROD:-}" = "1" ]; then
+            echo "::error::ALLOW_PROD is forbidden. Marketing workflow stays on https://dev.helloalex.ai"
+            exit 1
+          fi
+          if [ "$BASE_URL" != "https://dev.helloalex.ai" ]; then
+            echo "::error::Marketing workflow is locked to https://dev.helloalex.ai (got BASE_URL=$BASE_URL)."
+            exit 1
+          fi
       - run: npx playwright install chromium --with-deps
-      - run: npx playwright test --project=desktop
+      - run: node scripts/run-env.cjs staging-a -- --project=desktop
         env:
+          QA_ENV: staging-a
           BASE_URL: https://dev.helloalex.ai
-      - run: node scripts/load-probe.mjs
+      - run: node scripts/run-env.cjs staging-a load
         env:
+          QA_ENV: staging-a
           BASE_URL: https://dev.helloalex.ai
           USERS: "30"
           DURATION_S: "15"

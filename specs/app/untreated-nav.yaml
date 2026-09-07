@@ -14,6 +14,7 @@ cases:
       - No create/save that persists if risky — open only preferred
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+    note: Destination-proof via assertNavDestination + Tasks landmark
   - id: TC-APP-TASKS-02
     title: New Task entry opens without save
     asserts:
@@ -28,6 +29,7 @@ cases:
       - No destructive delete
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+    note: Destination-proof + KB-specific landmark (no bare empty/upload)
   - id: TC-APP-KB-02
     title: Create Knowledge Base entry without persist
     asserts:
@@ -42,6 +44,7 @@ cases:
       - Do not click Connect / Sync that mutates live CRM
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
+    note: Destination-proof via assertNavDestination + CRM landmark
   - id: TC-APP-CRM-02
     title: Sync controls visible without live sync
     asserts:
@@ -56,17 +59,18 @@ cases:
       - Do not provision / create trunk
     risk: high
     implemented: suites/app/untreated-nav.spec.ts
+    note: Destination-proof via assertNavDestination + SIP landmark
   - id: TC-APP-SIP-02
     title: SIP provision controls gated (no provision)
     asserts:
-      - SIP chrome / optional provision CTA visible
-      - Never complete trunk provision
+      - SIP heading plus provision CTA or empty/chrome copy
+      - Never complete trunk provision (no tautological count >= 0)
     risk: high
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-AI-01
     title: AI Intelligence section opens
     asserts:
-      - Section landmark; read-only
+      - Destination-proof + AI Intelligence heading (not bare "insights")
     risk: medium
     implemented: suites/app/untreated-nav.spec.ts
   - id: TC-APP-AI-02

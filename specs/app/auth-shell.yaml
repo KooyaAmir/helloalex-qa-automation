@@ -89,7 +89,7 @@ cases:
       - Manage Credits visible
     risk: low
     implemented: suites/app/shell-nav.spec.ts
-    note: Adversarial flags OR-logic as weak — prefer greeting AND credits in a future tighten
+    note: Tightened 2026-09-07 — greeting AND Manage Credits AND Dashboard nav (no OR soft-pass)
 
   - id: TC-APP-SHELL-02
     title: Primary sidebar sections open without 404

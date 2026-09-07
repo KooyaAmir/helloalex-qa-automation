@@ -10,7 +10,7 @@ Tests detect regressions and write fix plans. They do **not** change production 
 |------|------|
 | `https://dev-app.helloalex.ai` | App staging (**only** app target for now) |
 
-Production app hosts are blocked unless `ALLOW_PROD=1`. Alternate app hosts need `ALLOW_APP_ALT=1`.
+Production app hosts (`app.helloalex.ai`, `helloalex.ai`) are **blocked**. Do **not** set `ALLOW_PROD=1`. `QA_ENV=app-staging` refuses production even if that flag is present. Alternate *staging* app hosts need `ALLOW_APP_ALT=1`.
 
 ## Credentials
 

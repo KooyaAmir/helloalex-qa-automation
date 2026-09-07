@@ -60,9 +60,27 @@ const FIX_PLANS = {
       "Under ~200 concurrent GET workers the edge returns many HTTP 429s. Tune CDN/WAF rate limits for HTML, cache marketing pages, and alert on 429 rate. Re-test after changes.",
   },
 };
+function reportSite() {
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, "");
+  if ((process.env.QA_ENV || "").toLowerCase() === "app-staging") {
+    return "https://dev-app.helloalex.ai";
+  }
+  return "https://dev.helloalex.ai";
+}
+
+/** Marketing TC-H/M/S* plus app TC-APP-* (incl. CAMP-TAB-active). */
 function extractId(title) {
-  const m = title.match(/\b(TC-[HM]\d+|TC-S\d+)\b/);
+  const m = String(title || "").match(
+    /\b(TC-APP-[A-Z0-9]+(?:-[A-Za-z0-9]+)+|TC-[HMS]\d+)\b/,
+  );
   return (m && m[1]) || "UNCATALOGUED";
+}
+
+function reproduceCmd(id, project) {
+  if ((process.env.QA_ENV || "").toLowerCase() === "app-staging") {
+    return `npm run test:app -- -g "${id}"`;
+  }
+  return `npx playwright test -g "${id}" --project=${project}`;
 }
 
 function dedupeBugs(bugs) {
@@ -82,8 +100,8 @@ function renderMarkdown(bugs) {
     "# Hello Alex - Automated QA Bug Report",
     "",
     `**Generated:** ${new Date().toISOString()}`,
-    `**Site:** ${process.env.BASE_URL || "https://dev.helloalex.ai"}`,
-    "**Environment:** test (prod blocked unless ALLOW_PROD=1)",
+    `**Site:** ${reportSite()}`,
+    "**Environment:** staging/test (production hosts blocked; do not set ALLOW_PROD=1)",
     "**Policy:** Proposed fixes are recommendations only. **Do not implement until approved.**",
     "",
     `## Summary: ${bugs.length} failing check(s)`,
@@ -161,7 +179,7 @@ class BugsReporter {
       project,
       error: (result.errors || []).map((e) => e.message || String(e)).join("\n") || result.status,
       evidence,
-      reproduction: `npx playwright test -g "${id}" --project=${project}`,
+      reproduction: reproduceCmd(id, project),
       fixPlan:
         (known && known.fixPlan) ||
         "Triage failure from error + screenshot/trace; propose a targeted frontend fix. Do not apply until approved.",
@@ -176,8 +194,9 @@ class BugsReporter {
       JSON.stringify(
         {
           generatedAt: new Date().toISOString(),
-          site: process.env.BASE_URL || "https://dev.helloalex.ai",
-          policy: "No site code changes without human approval. Default target is test env.",
+          site: reportSite(),
+          policy:
+            "No site code changes without human approval. Staging only — production hosts are blocked.",
           bugCount: unique.length,
           bugs: unique,
         },
@@ -190,3 +209,7 @@ class BugsReporter {
 }
 
 module.exports = BugsReporter;
+module.exports.extractId = extractId;
+module.exports.dedupeBugs = dedupeBugs;
+module.exports.renderMarkdown = renderMarkdown;
+module.exports.reportSite = reportSite;

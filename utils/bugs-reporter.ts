@@ -1,3 +1,7 @@
+/**
+ * Typed mirror of utils/bugs-reporter.cjs.
+ * playwright.config.ts loads the CJS reporter at runtime — keep extractId / site in sync.
+ */
 import type {
   FullConfig,
   FullResult,
@@ -71,9 +75,27 @@ const FIX_PLANS: Record<string, { severity: string; fixPlan: string }> = {
   },
 };
 
-function extractId(title: string): string {
-  const m = title.match(/\b(TC-[HM]\d+|TC-S\d+)\b/);
+function reportSite(): string {
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, "");
+  if ((process.env.QA_ENV || "").toLowerCase() === "app-staging") {
+    return "https://dev-app.helloalex.ai";
+  }
+  return "https://dev.helloalex.ai";
+}
+
+/** Marketing TC-H/M/S* plus app TC-APP-* (incl. CAMP-TAB-active). */
+export function extractId(title: string): string {
+  const m = String(title || "").match(
+    /\b(TC-APP-[A-Z0-9]+(?:-[A-Za-z0-9]+)+|TC-[HMS]\d+)\b/,
+  );
   return m?.[1] ?? "UNCATALOGUED";
+}
+
+function reproduceCmd(id: string, project: string): string {
+  if ((process.env.QA_ENV || "").toLowerCase() === "app-staging") {
+    return `npm run test:app -- -g "${id}"`;
+  }
+  return `npx playwright test -g "${id}" --project=${project}`;
 }
 
 class BugsReporter implements Reporter {
@@ -102,7 +124,7 @@ class BugsReporter implements Reporter {
       project: test.parent?.project()?.name ?? "default",
       error: result.errors.map((e) => e.message ?? String(e)).join("\n") || result.status,
       evidence,
-      reproduction: `npx playwright test -g "${id}" --project=${test.parent?.project()?.name ?? "desktop"}`,
+      reproduction: reproduceCmd(id, test.parent?.project()?.name ?? "desktop"),
       fixPlan:
         known?.fixPlan ??
         "Triage failure from error + screenshot/trace; propose a targeted frontend fix. Do not apply until approved.",
@@ -117,8 +139,9 @@ class BugsReporter implements Reporter {
       JSON.stringify(
         {
           generatedAt: new Date().toISOString(),
-          site: "https://helloalex.ai",
-          policy: "No site code changes without human approval.",
+          site: reportSite(),
+          policy:
+            "No site code changes without human approval. Staging only — production hosts are blocked.",
           bugCount: unique.length,
           bugs: unique,
         },
@@ -147,7 +170,8 @@ function renderMarkdown(bugs: Bug[]): string {
     "# Hello Alex — Automated QA Bug Report",
     "",
     `**Generated:** ${new Date().toISOString()}`,
-    "**Site:** https://helloalex.ai",
+    `**Site:** ${reportSite()}`,
+    "**Environment:** staging/test (production hosts blocked; do not set ALLOW_PROD=1)",
     "**Policy:** Proposed fixes are recommendations only. **Do not implement until approved.**",
     "",
     `## Summary: ${bugs.length} failing check(s)`,

@@ -2,9 +2,8 @@ import { test, expect } from "@playwright/test";
 import {
   SIDEBAR_PRIMARY,
   gotoAuthenticatedShell,
-  mainRegion,
+  openSidebarSection,
   sidebar,
-  sidebarNav,
 } from "./shell-helpers";
 
 /**
@@ -22,12 +21,12 @@ test.describe("app-shell", () => {
     page,
   }) => {
     await gotoAuthenticatedShell(page);
-    const greeting = page.getByRole("heading", { name: /hi\s+/i }).first();
-    const dashboard = sidebar(page).getByRole("button", {
-      name: "Dashboard",
-      exact: true,
+    await expect(
+      sidebar(page).getByRole("button", { name: "Dashboard", exact: true }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: /hi\s+/i }).first()).toBeVisible({
+      timeout: 20_000,
     });
-    await expect(greeting.or(dashboard).first()).toBeVisible({ timeout: 20_000 });
     await expect(
       page.getByRole("button", { name: "Manage Credits", exact: true }),
     ).toBeVisible();
@@ -35,22 +34,7 @@ test.describe("app-shell", () => {
 
   for (const label of SIDEBAR_PRIMARY) {
     test(`TC-APP-SHELL-02 sidebar opens: ${label}`, async ({ page }) => {
-      await gotoAuthenticatedShell(page);
-      const nav = sidebarNav(page, label);
-      await expect(nav).toBeVisible({ timeout: 15_000 });
-      await nav.click();
-
-      const notFound = page.getByText(/client page not found/i);
-
-      await expect
-        .poll(async () => !(await notFound.isVisible().catch(() => false)), {
-          timeout: 15_000,
-        })
-        .toBeTruthy();
-
-      await expect(notFound).toBeHidden();
-      await expect(mainRegion(page)).toBeVisible({ timeout: 15_000 });
-      await expect(sidebar(page)).toBeVisible();
+      await openSidebarSection(page, label);
     });
   }
 });

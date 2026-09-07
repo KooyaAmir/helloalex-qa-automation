@@ -18,6 +18,8 @@
     "test:gaps:b": "node scripts/run-env.cjs staging-b -- --project=desktop suites/link-crawl.spec.ts suites/perf-smoke.spec.ts suites/checkout-safe.spec.ts suites/video-call-smoke.spec.ts",
     "report": "playwright show-report",
     "bugs": "node scripts/build-bugs-report.mjs",
+    "check:guards": "node scripts/check-guards.cjs",
+    "typecheck": "tsc --noEmit",
     "load:probe": "node scripts/run-env.cjs staging-a load",
     "load:probe:b": "node scripts/run-env.cjs staging-b load",
     "load:probe:1k": "node scripts/run-env.cjs staging-a load:1k"

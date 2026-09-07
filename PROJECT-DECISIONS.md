@@ -22,5 +22,6 @@ Human answers that steer Hello Alex QA automation.
 - Default `npm` scripts and nightly CI should target `QA_ENV=app-staging`.
 - Marketing `staging-a/b` remains available but is not the success metric.
 - Safety denylist includes CRM connect/sync, SIP provision, voice clone.
+- Production hosts stay blocked. Do not set `ALLOW_PROD=1`. `app-staging` refuses prod even if that flag is present.
 - Canvas at workspace `canvases/helloalex-app-qa.canvas.tsx` is the results surface.
 - No auto-PRs against product code until you approve a TC by name.
