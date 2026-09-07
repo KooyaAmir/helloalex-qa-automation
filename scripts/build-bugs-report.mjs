@@ -16,6 +16,9 @@ if (!fs.existsSync(jsonPath)) {
 
 const data = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
 const bugs = Array.isArray(data.bugs) ? data.bugs : [];
+if (data.site && !process.env.BASE_URL) {
+  process.env.BASE_URL = String(data.site);
+}
 const mdPath = path.join(dir, "bugs.md");
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(mdPath, renderMarkdown(bugs));
