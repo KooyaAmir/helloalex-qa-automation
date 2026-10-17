@@ -6,8 +6,6 @@ name: Hello Alex QA
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * *"
 
 concurrency:
   group: qa-marketing-staging
